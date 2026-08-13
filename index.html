@@ -794,7 +794,7 @@ function buildHTML() {
   const fbk = FALLBACK_IMG.replace(/'/g, "\\'");
 
   const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
-    const prodCards = prods.flatMap(p => {
+    const modelSections = prods.map(p => {
       const sp  = p.specs || {};
       const typ = sp['Typ obruby'] || '';
       const mat = sp['Materiál rámečku'] || sp['Materiál'] || '';
@@ -813,31 +813,35 @@ function buildHTML() {
       const priceHTML    = extra.price ? `<span class="mprice">${esc(extra.price)}</span>` : '';
       const descCustHTML = extra.desc  ? `<div class="mdesc-cust">${esc(extra.desc)}</div>` : '';
 
-      return (p.variants || []).map(v => {
+      const varCells = (p.variants || []).map(v => {
         const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
         const img  = vUrl
           ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" onerror="this.onerror=null;this.src='${fbk}'">`
           : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}">`;
-        return `<div class="mc">
-          <div class="mrow">
-            <span class="mcode">${esc(p.modelName)}</span>
-            ${priceHTML}
-          </div>
-          ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
-          ${descCustHTML}
-          ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
+        return `<div class="vc">
           ${img}
           <div class="vb">
             <div class="vcode">${esc(v.variantCode)}</div>
             <div class="vfarbe">${esc(v.colorName)}</div>
           </div>
         </div>`;
-      });
+      }).join('');
+
+      return `<div class="ms">
+        <div class="mrow">
+          <span class="mcode">${esc(p.modelName)}</span>
+          ${priceHTML}
+        </div>
+        ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
+        ${descCustHTML}
+        ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
+        <div class="vg">${varCells}</div>
+      </div>`;
     }).join('');
 
     return `<div class="ls">
       <div class="lh"><span class="ln">${esc(brand)}</span></div>
-      <div class="prod-grid">${prodCards}</div>
+      ${modelSections}
     </div>`;
   }).join('');
 
@@ -883,11 +887,8 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .ls{background:#fff;margin-top:16px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
 .ln{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
-.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#f1f5f9;}
-@media(max-width:680px){.prod-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:420px){.prod-grid{grid-template-columns:1fr;}}
-.mc{padding:14px 16px 14px;background:#fff;}
-.prod-grid .vg{display:flex;flex-wrap:nowrap;gap:8px;}.prod-grid .vg .vc{flex:1 1 0;min-width:0;}
+.ms{padding:20px 24px;border-bottom:1px solid #e2e8f0;}
+.ms:last-child{border-bottom:none;}
 .mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
 .mcode{font-size:16px;font-weight:800;color:#0f172a}
 .mprice{background:#e87722;color:#fff;font-size:13px;font-weight:700;padding:3px 14px;border-radius:20px;display:inline-block}
