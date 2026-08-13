@@ -508,22 +508,21 @@ function init() {
 
   refresh();
 
-  // 1. Zkus localStorage cache
-  const cached = localStorage.getItem('productsJson');
-  if (cached) {
-    try {
-      onProductsLoaded(JSON.parse(cached), true);
-      return;
-    } catch(e) {
-      localStorage.removeItem('productsJson');
-    }
-  }
-
-  // 2. Zkus fetch (funguje ve Firefoxu a na serveru)
-  fetch('products.json')
+  // 1. Zkus fetch přímo z GitHubu (vždy aktuální)
+  const GH_JSON = 'https://raw.githubusercontent.com/kaiserjiri/newsletter-builder/main/products.json';
+  fetch(GH_JSON)
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(data => onProductsLoaded(data))
-    .catch(() => showFilePicker());
+    .catch(() => {
+      // 2. GitHub nedostupný → zkus localStorage cache
+      const cached = localStorage.getItem('productsJson');
+      if (cached) {
+        try { onProductsLoaded(JSON.parse(cached), true); return; }
+        catch(e) { localStorage.removeItem('productsJson'); }
+      }
+      // 3. Nic → ruční výběr souboru
+      showFilePicker();
+    });
 }
 
 function showFilePicker() {
@@ -540,7 +539,13 @@ function showFilePicker() {
 
 function clearCacheAndReload() {
   localStorage.removeItem('productsJson');
-  showFilePicker();
+  document.getElementById('load-ui').innerHTML =
+    '<div class="prod-status">Načítám z GitHubu…</div>';
+  const GH_JSON = 'https://raw.githubusercontent.com/kaiserjiri/newsletter-builder/main/products.json';
+  fetch(GH_JSON)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => onProductsLoaded(data))
+    .catch(() => showFilePicker());
 }
 
 function handleFileInput(input) {
@@ -569,8 +574,8 @@ function onProductsLoaded(data, fromCache = false) {
 
   document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
   const cacheNote = fromCache
-    ? `<span style="color:#22c55e;font-size:10px;">● z cache</span>`
-    : '';
+    ? `<span style="color:#f59e0b;font-size:10px;">● offline cache</span>`
+    : `<span style="color:#22c55e;font-size:10px;">● GitHub</span>`;
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status" style="display:flex;align-items:center;justify-content:center;gap:6px;">
       ✓ <strong>${ALL_PRODUCTS.length}</strong> produktů ${cacheNote}
