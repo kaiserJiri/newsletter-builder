@@ -891,7 +891,7 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 @media(max-width:680px){.prod-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:420px){.prod-grid{grid-template-columns:1fr;}}
 .mc{padding:14px 16px 14px;background:#fff;}
-.prod-grid .vg{grid-template-columns:repeat(2,1fr);}
+.prod-grid .vg{display:flex;flex-wrap:nowrap;gap:8px;}.prod-grid .vg .vc{flex:1 1 0;min-width:0;}
 .mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
 .mcode{font-size:16px;font-weight:800;color:#0f172a}
 .mprice{background:#e87722;color:#fff;font-size:13px;font-weight:700;padding:3px 14px;border-radius:20px;display:inline-block}
