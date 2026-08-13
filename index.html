@@ -794,7 +794,7 @@ function buildHTML() {
   const fbk = FALLBACK_IMG.replace(/'/g, "\\'");
 
   const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
-    const prodCards = prods.map(p => {
+    const prodCards = prods.flatMap(p => {
       const sp  = p.specs || {};
       const typ = sp['Typ obruby'] || '';
       const mat = sp['Materiál rámečku'] || sp['Materiál'] || '';
@@ -813,30 +813,26 @@ function buildHTML() {
       const priceHTML    = extra.price ? `<span class="mprice">${esc(extra.price)}</span>` : '';
       const descCustHTML = extra.desc  ? `<div class="mdesc-cust">${esc(extra.desc)}</div>` : '';
 
-      const vars = p.variants || [];
-      const varCells = vars.map(v => {
-          const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
-          const img  = vUrl
-            ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" onerror="this.onerror=null;this.src='${fbk}'">`
-            : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}">`;
-          return `<div class="vc">${img}
-            <div class="vb">
-              <div class="vcode">${esc(v.variantCode)}</div>
-              <div class="vfarbe">${esc(v.colorName)}</div>
-            </div>
-          </div>`;
-        }).join('');
-
-      return `<div class="mc">
-        <div class="mrow">
-          <span class="mcode">${esc(p.modelName)}</span>
-          ${priceHTML}
-        </div>
-        ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
-        ${descCustHTML}
-        ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
-        <div class="vg">${varCells}</div>
-      </div>`;
+      return (p.variants || []).map(v => {
+        const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
+        const img  = vUrl
+          ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" onerror="this.onerror=null;this.src='${fbk}'">`
+          : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}">`;
+        return `<div class="mc">
+          <div class="mrow">
+            <span class="mcode">${esc(p.modelName)}</span>
+            ${priceHTML}
+          </div>
+          ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
+          ${descCustHTML}
+          ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
+          ${img}
+          <div class="vb">
+            <div class="vcode">${esc(v.variantCode)}</div>
+            <div class="vfarbe">${esc(v.colorName)}</div>
+          </div>
+        </div>`;
+      });
     }).join('');
 
     return `<div class="ls">
