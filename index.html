@@ -523,7 +523,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
     <!-- ⑤ FUßZEILE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-pata" onclick="toggleSect('pata')">
-        <div class="sect-title"><span class="sect-num">5</span>Fuÿzeile</div>
+        <div class="sect-title"><span class="sect-num">5</span>FuÞzeile</div>
         <span class="sect-caret" id="caret-pata">▸</span>
       </div>
       <div id="body-pata" style="display:none" class="sect-body">
@@ -976,9 +976,10 @@ function rebuildList() {
     const on    = selected.has(p.gm);
     const thumb = (p.variants || [])[0]?.thumbImage;
     const url   = thumb ? imgUrl(thumb) : null;
-    const kolekce  = (p.specs || {})['Kolekce'] || '';
+    const kolekceRaw = (p.specs || {})['Kolekce'] || '';
+    const kolekce  = VALUE_DE[kolekceRaw] || kolekceRaw;
     const varCount = (p.variants || []).length;
-    const sub = [kolekce, varCount + (varCount === 1 ? ' barva' : varCount < 5 ? ' barvy' : ' barev')].filter(Boolean).join(' · ');
+    const sub = [kolekce, varCount + (varCount === 1 ? ' Farbe' : ' Farben')].filter(Boolean).join(' · ');
     const dots = (p.variants || []).slice(0, 8).map(v =>
       `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
     ).join('');
@@ -1042,7 +1043,7 @@ function selectAll(on) {
 }
 
 // ════════════════════════════════════════════════════
-//  SELECTED PRODUCTS CONFIG (cena + popis)
+//  SELECTED PRODUCTS CONFIG (Preis + Beschreibung)
 // ════════════════════════════════════════════════════
 function rebuildSelConfig() {
   const wrap = document.getElementById('sel-config-wrap');
@@ -1064,13 +1065,13 @@ function rebuildSelConfig() {
       <div class="sel-card-name">${esc(p.modelName)}</div>
       <div class="row2">
         <div>
-          <label class="field-label" style="margin-top:0">Cena (€)</label>
+          <label class="field-label" style="margin-top:0">Preis (€)</label>
           <input type="text" value="${esc(ex.price)}" placeholder="89,00 €"
             oninput="setExtra(${p.gm},'price',this.value)">
         </div>
         <div>
-          <label class="field-label" style="margin-top:0">Popis</label>
-          <input type="text" value="${esc(ex.desc)}" placeholder="krátký popis"
+          <label class="field-label" style="margin-top:0">Beschreibung</label>
+          <input type="text" value="${esc(ex.desc)}" placeholder="kurze Beschreibung"
             oninput="setExtra(${p.gm},'desc',this.value)">
         </div>
       </div>
