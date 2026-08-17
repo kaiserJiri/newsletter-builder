@@ -809,7 +809,22 @@ const VALUE_DE = {
   'kov':          'Metall',
   'memory titan': 'Memory-Titan',
   'polykarbonát': 'Polykarbonat',
+  // Kolekce
+  'dámské':       'Damen',
+  'pánské':       'Herren',
+  'dětské':       'Kinder',
+  'unisex':       'Unisex',
+  'junior':       'Junior',
 };
+
+// Translate a compound colorName "černá / červená" → "Schwarz / Rot"
+function colorNameDE(czName) {
+  if (!czName) return czName;
+  const colorMap = new Map(COLOR_DE.map(([cz, de]) => [cz.toLowerCase(), de]));
+  return czName.split(/\s*\/\s*/).map(part => {
+    return colorMap.get(part.trim().toLowerCase()) || part.trim();
+  }).join(' / ');
+}
 
 function buildDynamicChips() {
   for (const cfg of CHIP_CONFIG) {
@@ -1109,14 +1124,14 @@ function buildHTML() {
   const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
     const modelSections = prods.map(p => {
       const sp  = p.specs || {};
-      const typ = sp['Typ obruby'] || '';
-      const mat = sp['Materiál rámečku'] || sp['Materiál'] || '';
+      const typ = VALUE_DE[sp['Typ obruby'] || ''] || sp['Typ obruby'] || '';
+      const mat = VALUE_DE[sp['Materiál rámečku'] || sp['Materiál'] || ''] || sp['Materiál rámečku'] || sp['Materiál'] || '';
       const oce = sp['Šířka očnice'] || '';
       const nos = sp['Šířka nosníku'] || '';
       const str = sp['Délka stranice [mm]'] || sp['Délka stranice'] || '';
       const flex  = sp['Flex'] === 'ANO' ? ' · Flex' : '';
-      const multi = sp['Vhodné pro multifokál'] === 'ANO' ? ' · Multifokál' : '';
-      const kolekce = sp['Kolekce'] || '';
+      const multi = sp['Vhodné pro multifokál'] === 'ANO' ? ' · Multifokus' : '';
+      const kolekce = VALUE_DE[sp['Kolekce'] || ''] || sp['Kolekce'] || '';
 
       const dimStr = [oce && nos ? oce+'□'+nos : '', str ? str+'mm' : ''].filter(Boolean).join(' / ');
       const badge  = [kolekce, dimStr].filter(Boolean).join(' · ');
@@ -1144,7 +1159,7 @@ function buildHTML() {
           ${img}
           <div class="vb">
             <div class="vcode">${esc(v.variantCode)}</div>
-            <div class="vfarbe">${esc(v.colorName)}</div>
+            <div class="vfarbe">${esc(colorNameDE(v.colorName))}</div>
           </div>
         </div>`;
       }).join('');
