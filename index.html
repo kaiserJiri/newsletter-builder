@@ -469,10 +469,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           <div class="sect-sub">Eigenschaften</div>
           <div id="bool-filters">
             <label class="check-row"><input type="checkbox" id="f-flex" onchange="rebuildList()"><span>Flex-Scharniere</span></label>
-            <label class="check-row"><input type="checkbox" id="f-multi" onchange="rebuildList()"><span>Multifokál geeignet</span></label>
-            <label class="check-row"><input type="checkbox" id="f-eco" onchange="rebuildList()"><span>ECO-friendly</span></label>
-            <label class="check-row"><input type="checkbox" id="f-anose" onchange="rebuildList()"><span>Anatomischer Nasenrücken</span></label>
-            <label class="check-row"><input type="checkbox" id="f-clip" onchange="rebuildList()"><span>Mit Clip-on</span></label>
+            <label class="check-row"><input type="checkbox" id="f-multi" onchange="rebuildList()"><span>Für Gleitsichtgläser geeignet</span></label>
           </div>
 
           <hr class="sect-hr">
@@ -584,7 +581,7 @@ const chipFilters = {
   obruba:   new Set(),
   material: new Set(),
   tvar:     new Set(),
-  farbe:    new Set(),
+  farbe:    new Set(),  // base color (Czech key, German label)
 };
 
 // ════════════════════════════════════════════════════
@@ -763,11 +760,56 @@ function getCheckedBrands() {
 //  DYNAMIC CHIP FILTERS
 // ════════════════════════════════════════════════════
 const CHIP_CONFIG = [
-  { key: 'obruba',   specKey: 'Obruba',          containerId: 'obruba-chips'   },
-  { key: 'material', specKey: 'Materiál',         containerId: 'material-chips' },
+  { key: 'obruba',   specKey: 'Typ obruby',       containerId: 'obruba-chips'   },
+  { key: 'material', specKey: 'Materiál rámečku', containerId: 'material-chips' },
   { key: 'tvar',     specKey: 'Tvar rámečku',     containerId: 'tvar-chips'     },
-  { key: 'farbe',    specKey: 'Barva produktu',    containerId: 'farbe-chips'    },
 ];
+
+// Base color order + German labels
+const COLOR_DE = [
+  ['černá',        'Schwarz'],
+  ['bílá',         'Weiß'],
+  ['šedá',         'Grau'],
+  ['stříbrná',     'Silber'],
+  ['zlatá',        'Gold'],
+  ['gun',          'Gunmetal'],
+  ['havana',       'Havana'],
+  ['hnědá',        'Braun'],
+  ['transparentní','Transparent'],
+  ['modrá',        'Blau'],
+  ['zelená',       'Grün'],
+  ['červená',      'Rot'],
+  ['růžová',       'Rosa'],
+  ['fialová',      'Violett'],
+  ['oranžová',     'Orange'],
+  ['žlutá',        'Gelb'],
+  ['béžová',       'Beige'],
+  ['karbonová',    'Carbon'],
+  ['crazy',        'Crazy'],
+];
+
+// Czech → German value translations for chip display
+const VALUE_DE = {
+  // Typ obruby
+  'bez obruby':   'Randlos',
+  'celoobruba':   'Vollrand',
+  'poloobruba':   'Halbrand',
+  // Tvar rámečku
+  'cat eye':      'Cat Eye',
+  'clubmaster':   'Clubmaster',
+  'kulaté':       'Rund',
+  'mask':         'Mask',
+  'obdélníkové':  'Rechteckig',
+  'oválný':       'Oval',
+  'pilot':        'Pilot',
+  'čtvercové':    'Eckig',
+  // Materiál rámečku
+  'acetát':       'Acetat',
+  'hliník':       'Aluminium',
+  'kov':          'Metall',
+  'memory titan': 'Memory-Titan',
+  'polykarbonát': 'Polykarbonat',
+};
 
 function buildDynamicChips() {
   for (const cfg of CHIP_CONFIG) {
@@ -779,16 +821,42 @@ function buildDynamicChips() {
     const container = document.getElementById(cfg.containerId);
     if (!container) continue;
     if (!vals.length) {
-      container.parentElement && (container.style.display = 'none');
-      // hide the sect-sub label above it too
+      container.style.display = 'none';
       const prev = container.previousElementSibling;
       if (prev && prev.classList.contains('sect-sub')) prev.style.display = 'none';
       continue;
     }
-    container.innerHTML = vals.map(v => `
-      <span class="chip" data-filter-key="${cfg.key}" data-filter-val="${esc(v)}"
-            onclick="toggleChipFilter('${cfg.key}','${esc(v)}',this)">${esc(v)}</span>
-    `).join('');
+    container.innerHTML = vals.map(v => {
+      const label = VALUE_DE[v] || v;
+      return `<span class="chip" data-filter-key="${cfg.key}" data-filter-val="${esc(v)}"
+            onclick="toggleChipFilter('${cfg.key}','${esc(v)}',this)">${esc(label)}</span>`;
+    }).join('');
+  }
+
+  // Color chips — derived from variant colorNames (split by " / ")
+  const presentBaseColors = new Set();
+  for (const p of ALL_PRODUCTS) {
+    for (const v of (p.variants || [])) {
+      const parts = (v.colorName || '').split(/\s*\/\s*/);
+      for (const part of parts) {
+        const t = part.trim().toLowerCase();
+        if (t) presentBaseColors.add(t);
+      }
+    }
+  }
+  const farbeContainer = document.getElementById('farbe-chips');
+  if (farbeContainer) {
+    const chips = COLOR_DE.filter(([cz]) => presentBaseColors.has(cz));
+    if (chips.length) {
+      farbeContainer.innerHTML = chips.map(([cz, de]) =>
+        `<span class="chip" data-filter-key="farbe" data-filter-val="${esc(cz)}"
+              onclick="toggleChipFilter('farbe','${esc(cz)}',this)">${esc(de)}</span>`
+      ).join('');
+    } else {
+      farbeContainer.style.display = 'none';
+      const prev = farbeContainer.previousElementSibling;
+      if (prev && prev.classList.contains('sect-sub')) prev.style.display = 'none';
+    }
   }
 }
 
@@ -817,9 +885,6 @@ function filteredProducts() {
   const ewMax   = parseFloat(document.getElementById('ew-max')?.value) || null;
   const fFlex   = document.getElementById('f-flex')?.checked;
   const fMulti  = document.getElementById('f-multi')?.checked;
-  const fEco    = document.getElementById('f-eco')?.checked;
-  const fAnose  = document.getElementById('f-anose')?.checked;
-  const fClip   = document.getElementById('f-clip')?.checked;
 
   return ALL_PRODUCTS.filter(p => {
     const sp = p.specs || {};
@@ -839,23 +904,30 @@ function filteredProducts() {
       if (!search.split(/\s+/).every(t => hay.includes(t))) return false;
     }
 
-    // Chip-multi filters
+    // Chip-multi filters (spec-based)
     const chipMap = {
-      obruba:   'Obruba',
-      material: 'Materiál',
+      obruba:   'Typ obruby',
+      material: 'Materiál rámečku',
       tvar:     'Tvar rámečku',
-      farbe:    'Barva produktu',
     };
     for (const [key, specKey] of Object.entries(chipMap)) {
       if (chipFilters[key].size) {
-        const val = specVal(p, specKey);
-        if (![...chipFilters[key]].some(v => val.toLowerCase().includes(v.toLowerCase()))) return false;
+        const val = specVal(p, specKey).toLowerCase();
+        if (![...chipFilters[key]].some(v => val.includes(v.toLowerCase()))) return false;
       }
+    }
+
+    // Color filter (variant-based)
+    if (chipFilters.farbe.size) {
+      const variantColors = (p.variants || []).flatMap(v =>
+        (v.colorName || '').split(/\s*\/\s*/).map(s => s.trim().toLowerCase())
+      );
+      if (![...chipFilters.farbe].some(fc => variantColors.includes(fc))) return false;
     }
 
     // Glasbreite range
     if (ewMin !== null || ewMax !== null) {
-      const raw = specVal(p, 'Šířka očnice [mm]');
+      const raw = specVal(p, 'Šířka očnice');
       const num = parseFloat(raw);
       if (isNaN(num)) return false;
       if (ewMin !== null && num < ewMin) return false;
@@ -864,10 +936,7 @@ function filteredProducts() {
 
     // Boolean filters (ANO = yes)
     if (fFlex  && !/^ano$/i.test(specVal(p, 'Flex')))                      return false;
-    if (fMulti && !/^ano$/i.test(specVal(p, 'Multifokál')))                 return false;
-    if (fEco   && !/^ano$/i.test(specVal(p, 'ECO-friendly')))               return false;
-    if (fAnose && !/^ano$/i.test(specVal(p, 'Anatomický nosník')))           return false;
-    if (fClip  && !/^ano$/i.test(specVal(p, '1. Clip-on')))                 return false;
+    if (fMulti && !/^ano$/i.test(specVal(p, 'Vhodné pro multifokál')))      return false;
 
     return true;
   });
@@ -1057,7 +1126,16 @@ function buildHTML() {
       const priceHTML    = extra.price ? `<span class="mprice">${esc(extra.price)}</span>` : '';
       const descCustHTML = extra.desc  ? `<div class="mdesc-cust">${esc(extra.desc)}</div>` : '';
 
-      const varCells = (p.variants || []).map(v => {
+      // If color filter active, show only matching variants
+      const activeColors = chipFilters.farbe;
+      const visibleVariants = activeColors.size
+        ? (p.variants || []).filter(v => {
+            const parts = (v.colorName || '').split(/\s*\/\s*/).map(s => s.trim().toLowerCase());
+            return [...activeColors].some(fc => parts.includes(fc));
+          })
+        : (p.variants || []);
+
+      const varCells = visibleVariants.map(v => {
         const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
         const img  = vUrl
           ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" onerror="this.onerror=null;this.src='${fbk}'">`
@@ -1275,7 +1353,7 @@ function resetAll() {
     const ewMin = document.getElementById('ew-min'); if (ewMin) ewMin.value = '';
     const ewMax = document.getElementById('ew-max'); if (ewMax) ewMax.value = '';
     // Reset bool
-    ['f-flex','f-multi','f-eco','f-anose','f-clip'].forEach(id => {
+    ['f-flex','f-multi'].forEach(id => {
       const el = document.getElementById(id); if (el) el.checked = false;
     });
     rebuildList();
