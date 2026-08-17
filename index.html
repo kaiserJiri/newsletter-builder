@@ -216,6 +216,22 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .sel-card-brand { font-size: 11px; font-weight: 700; color: var(--acc); text-transform: uppercase; letter-spacing: 0.5px; }
 .sel-card-name { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ─── RESIZER ────────────────────────────────────────── */
+.resizer {
+  width: 6px; flex-shrink: 0; background: var(--border);
+  cursor: ew-resize; position: relative; transition: background 0.15s;
+}
+.resizer:hover, .resizer.dragging { background: var(--acc); }
+.resizer::after {
+  content: '⋮'; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #94a3b8; font-size: 14px; pointer-events: none;
+  line-height: 1;
+}
+.resizer:hover::after, .resizer.dragging::after { color: white; }
+
+@media (max-width: 768px) { .resizer { display: none; } }
+
 /* ─── PREVIEW ────────────────────────────────────────── */
 .preview-pane { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #e2e8f0; }
 .preview-bar {
@@ -244,7 +260,30 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 
 @media (max-width: 768px) {
   html, body { height: auto; overflow: auto; }
-  .mobile-tabs { display: flex; }
+  /* Topbar: 2 řádky — logo nahoře, záložky dole přes celou šířku */
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 16px;
+    gap: 6px;
+  }
+  .topbar-spacer { display: none; }
+  .btn-ghost, .btn-primary { display: none; }
+  .topbar-sub { display: none; }
+  .topbar-logo { font-size: 15px; letter-spacing: 1px; }
+  .mobile-tabs {
+    display: flex;
+    width: 100%;
+    gap: 0;
+    margin-left: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    border-radius: 6px;
+    margin: 0 3px;
+  }
+  /* Layout */
   .main { flex-direction: column; overflow: visible; flex: none; }
   .sidebar {
     width: 100%;
@@ -256,9 +295,17 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
   .main.show-preview .sidebar { display: none; }
   .main.show-preview .preview-pane {
     display: flex;
-    height: calc(100vh - 52px);
     flex-direction: column;
   }
+  .main.show-preview .preview-frame {
+    flex: none;
+    width: calc(100% - 24px);
+    margin: 8px 12px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  /* Download button — zobrazit uvnitř preview baru na mobilu */
+  .preview-bar .mobile-dl { display: inline-flex !important; }
 }
 
 /* ─── STATUS ─────────────────────────────────────────── */
@@ -454,11 +501,15 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
 
   </div><!-- /sidebar -->
 
+  <!-- RESIZER -->
+  <div class="resizer" id="resizer" title="Přetáhnout pro změnu šířky"></div>
+
   <!-- PREVIEW -->
   <div class="preview-pane">
     <div class="preview-bar">
       <strong>Vorschau</strong>
-      <span>· Echtzeit · <span id="preview-count">0 produktů</span></span>
+      <span>· <span id="preview-count">0 produktů</span></span>
+      <button class="btn btn-primary mobile-dl" style="display:none;margin-left:auto;font-size:13px;padding:5px 12px;" onclick="downloadHTML()">⬇ Stáhnout</button>
     </div>
     <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
   </div>
@@ -951,6 +1002,27 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .ftr p{color:#94a3b8;font-size:14px;margin:5px 0;line-height:1.6}
 .ftr a{color:#e87722;text-decoration:none}
 .ftr-legal{margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;font-size:13px;color:#475569}
+@media(max-width:600px){
+  body{padding:8px 0 24px}
+  .wrap{width:100%}
+  .hdr{padding:24px 16px 20px;border-radius:6px 6px 0 0}
+  .logo{font-size:20px;letter-spacing:2px}
+  .thema{font-size:17px;letter-spacing:0.5px}
+  .intro{padding:14px 16px;font-size:14px}
+  .ls{margin-top:10px}
+  .lh{padding:12px 16px}
+  .ln{font-size:19px}
+  .ms{padding:14px 14px}
+  .mcode{font-size:15px}
+  .mprice{font-size:13px;padding:2px 10px}
+  .mdesc{font-size:13px}
+  .mdesc-cust{font-size:13px}
+  .abs{padding:16px 16px;font-size:14px}
+  .bst{padding:14px 16px;font-size:13px}
+  .ftr{padding:20px 16px}
+  .ftr-brand{font-size:16px}
+  .ftr p{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -1050,21 +1122,78 @@ function resetAll() {
 }
 
 // ════════════════════════════════════════════════════
+//  RESIZER (drag to resize sidebar)
+// ════════════════════════════════════════════════════
+function initResizer() {
+  const resizer = document.getElementById('resizer');
+  const sidebar = document.querySelector('.sidebar');
+  if (!resizer || !sidebar) return;
+
+  let dragging = false, startX = 0, startW = 0;
+
+  function onStart(e) {
+    dragging = true;
+    startX = e.clientX ?? e.touches[0].clientX;
+    startW = sidebar.offsetWidth;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX;
+    if (x == null) return;
+    const newW = Math.max(220, Math.min(window.innerWidth * 0.7, startW + x - startX));
+    sidebar.style.width = newW + 'px';
+  }
+
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }
+
+  resizer.addEventListener('mousedown', onStart);
+  resizer.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: true });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
+// ════════════════════════════════════════════════════
 //  MOBILE TAB SWITCHING
 // ════════════════════════════════════════════════════
+function fixPreviewHeight() {
+  if (window.innerWidth > 768) return;
+  const frame = document.getElementById('preview');
+  const topbar = document.querySelector('.topbar');
+  const previewBar = document.querySelector('.preview-bar');
+  if (!frame || !topbar || !previewBar) return;
+  const used = topbar.offsetHeight + previewBar.offsetHeight + 28; // 28 = margins
+  frame.style.height = Math.max(300, window.innerHeight - used) + 'px';
+}
+
 function switchTab(tab) {
   const main = document.querySelector('.main');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   if (tab === 'preview') {
     main.classList.add('show-preview');
     refresh();
+    requestAnimationFrame(fixPreviewHeight);
   } else {
     main.classList.remove('show-preview');
   }
 }
 
+window.addEventListener('resize', fixPreviewHeight);
+
 // ════════════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', () => { init(); initResizer(); });
 </script>
 </body>
 </html>
