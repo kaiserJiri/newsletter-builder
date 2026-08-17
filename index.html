@@ -55,10 +55,12 @@ body {
 
 /* ─── SIDEBAR ────────────────────────────────────────── */
 .sidebar {
-  width: 340px; min-width: 280px;
+  width: 340px; min-width: 0;
   background: white; border-right: 1px solid var(--border);
   overflow-y: auto; flex-shrink: 0;
+  transition: width 0.25s ease;
 }
+.sidebar.collapsed { width: 0 !important; overflow: hidden; border-right: none; }
 .sidebar::-webkit-scrollbar { width: 5px; }
 .sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
 
@@ -217,31 +219,55 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .sel-card-brand { font-size: 11px; font-weight: 700; color: var(--acc); text-transform: uppercase; letter-spacing: 0.5px; }
 .sel-card-name { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* Range row */
+.range-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.range-row input[type=number] {
+  flex: 1; text-align: center; padding: 5px 6px;
+}
+.range-sep { color: #94a3b8; font-size: 13px; flex-shrink: 0; }
+
+/* Bool filter checkboxes */
+#bool-filters { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+
 /* ─── RESIZER ────────────────────────────────────────── */
 .resizer {
-  width: 6px; flex-shrink: 0; background: var(--border);
-  cursor: ew-resize; position: relative; transition: background 0.15s;
+  width: 24px; flex-shrink: 0; background: transparent;
+  cursor: ew-resize; position: relative; user-select: none;
 }
-.resizer:hover, .resizer.dragging { background: var(--acc); }
-.resizer::after {
-  content: '⋮'; position: absolute; top: 50%; left: 50%;
+.resizer::before {
+  content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 4px; transform: translateX(-50%);
+  background: var(--border); transition: background 0.15s;
+}
+.resizer:hover::before, .resizer.dragging::before { background: var(--acc); }
+.resizer-toggle {
+  position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  color: #94a3b8; font-size: 14px; pointer-events: none;
-  line-height: 1;
+  width: 20px; height: 36px;
+  background: white; border: 1px solid var(--border);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #94a3b8; cursor: pointer;
+  transition: all 0.15s; z-index: 1; line-height: 1;
 }
-.resizer:hover::after, .resizer.dragging::after { color: white; }
+.resizer:hover .resizer-toggle, .resizer.dragging .resizer-toggle {
+  background: var(--acc); border-color: var(--acc); color: white;
+}
+.sidebar.collapsed ~ .resizer .resizer-toggle { content: '▶'; }
 
 @media (max-width: 768px) { .resizer { display: none; } }
 
 /* ─── PREVIEW ────────────────────────────────────────── */
-.preview-pane { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #e2e8f0; }
+.preview-pane { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #e2e8f0; padding: 0 10px 10px 0; }
+.preview-bar { margin-bottom: 0; }
 .preview-bar {
   background: #f8fafc; border-bottom: 1px solid var(--border);
   padding: 7px 16px; font-size: 13px; color: #94a3b8;
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 .preview-bar strong { color: var(--mid); }
-.preview-frame { flex: 1; width: 100%; border: none; display: block; }
+.preview-frame { flex: 1; width: 100%; border: none; display: block; border-radius: 8px; }
 
 /* ─── MOBILE TABS ────────────────────────────────────── */
 .mobile-tabs { display: none; gap: 6px; }
@@ -297,6 +323,7 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
   .main.show-preview .preview-pane {
     display: flex;
     flex-direction: column;
+    padding: 0;
   }
   .main.show-preview .preview-frame {
     flex: none;
@@ -327,8 +354,8 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
     <div class="topbar-sub">Newsletter Builder · MI Optics</div>
   </div>
   <div class="mobile-tabs">
-    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Editovat</button>
-    <button class="tab-btn" data-tab="preview" onclick="switchTab('preview')">👁 Náhled</button>
+    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Bearbeiten</button>
+    <button class="tab-btn" data-tab="preview" onclick="switchTab('preview')">👁 Vorschau</button>
   </div>
   <div class="topbar-spacer"></div>
   <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
@@ -339,16 +366,14 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
   <!-- ══════════════ SIDEBAR ══════════════ -->
   <div class="sidebar">
 
-    <!-- ① ZÁHLAVÍ -->
+    <!-- ① KOPFZEILE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-zahlaví" onclick="toggleSect('zahlaví')">
-        <div class="sect-title">
-          <span class="sect-num">1</span>Záhlaví
-        </div>
+        <div class="sect-title"><span class="sect-num">1</span>Kopfzeile</div>
         <span class="sect-caret" id="caret-zahlaví">▸</span>
       </div>
       <div id="body-zahlaví" style="display:none" class="sect-body">
-        <label class="field-label">Název firmy</label>
+        <label class="field-label">Firmenname</label>
         <input type="text" id="firma" value="BRILLENGROSSHANDEL" oninput="refresh()">
         <div class="row3" style="margin-top:9px">
           <div>
@@ -369,119 +394,145 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
       </div>
     </div>
 
-    <!-- ② ÚVODNÍ TEXT -->
+    <!-- ② EINLEITUNG -->
     <div class="sect">
       <div class="sect-toggle" id="tog-uvod" onclick="toggleSect('uvod')">
-        <div class="sect-title">
-          <span class="sect-num">2</span>Úvodní text
-        </div>
+        <div class="sect-title"><span class="sect-num">2</span>Einleitung</div>
         <span class="sect-caret" id="caret-uvod">▸</span>
       </div>
       <div id="body-uvod" style="display:none" class="sect-body">
-        <label class="field-label">Nadpis newsletteru</label>
+        <label class="field-label">Newsletter-Thema</label>
         <input type="text" id="thema" value="Kinder &amp; Jugendliche" oninput="refresh()">
-        <label class="field-label">Úvodní odstavec</label>
+        <label class="field-label">Einleitungstext</label>
         <textarea id="intro" rows="4" oninput="refresh()">Liebe Augenoptiker:innen, liebe Freunde,
 diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
       </div>
     </div>
 
-    <!-- ③ PRODUKTY (default open) -->
+    <!-- ③ PRODUKTE (default open) -->
     <div class="sect">
       <div class="sect-toggle open" id="tog-produkty" onclick="toggleSect('produkty')">
         <div class="sect-title">
-          <span class="sect-num">3</span>Produkty
+          <span class="sect-num">3</span>Produkte
           <span class="sect-badge" id="sel-count">0</span>
         </div>
         <span class="sect-caret" id="caret-produkty">▾</span>
       </div>
       <div id="body-produkty" class="sect-body">
 
-        <!-- Načtení dat -->
-        <div class="sect-sub">Načtení dat <span class="sect-badge" id="prod-count">—</span></div>
+        <!-- Daten laden -->
+        <div class="sect-sub">Daten <span class="sect-badge" id="prod-count">—</span></div>
         <div id="load-ui">
-          <div class="prod-status">Načítám products.json…</div>
+          <div class="prod-status">Lade products.json…</div>
         </div>
 
         <!-- Filtry (skryté dokud nejsou data) -->
         <div id="filter-sect" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Hledat &amp; filtrovat</div>
+          <div class="sect-sub">Suchen &amp; Filtern</div>
           <div class="search-wrap">
             <span class="search-icon">⌕</span>
-            <input type="text" id="prod-search" placeholder="Značka, model, číslo…" oninput="rebuildList()">
+            <input type="text" id="prod-search" placeholder="Marke, Modell, Nummer…" oninput="rebuildList()">
           </div>
+
+          <div class="sect-sub" style="margin-top:6px">Kollektion</div>
           <div class="chip-row" id="kolekce-chips">
-            <span class="chip active" data-kolekce="">Vše</span>
-            <span class="chip" data-kolekce="dámské">Dámské</span>
-            <span class="chip" data-kolekce="pánské">Pánské</span>
-            <span class="chip" data-kolekce="dětské">Dětské</span>
-            <span class="chip" data-kolekce="dívčí">Dívčí</span>
-            <span class="chip" data-kolekce="chlapecké">Chlapecké</span>
+            <span class="chip active" data-kolekce="">Alle</span>
+            <span class="chip" data-kolekce="dámské">Damen</span>
+            <span class="chip" data-kolekce="pánské">Herren</span>
+            <span class="chip" data-kolekce="dětské">Kinder</span>
+            <span class="chip" data-kolekce="dívčí">Mädchen</span>
+            <span class="chip" data-kolekce="chlapecké">Jungen</span>
             <span class="chip" data-kolekce="unisex">Unisex</span>
             <span class="chip" data-kolekce="junior">Junior</span>
           </div>
-          <div style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Značky</div>
+
+          <div class="sect-sub">Fassung</div>
+          <div class="chip-row chip-multi" id="obruba-chips"></div>
+
+          <div class="sect-sub">Material</div>
+          <div class="chip-row chip-multi" id="material-chips"></div>
+
+          <div class="sect-sub">Rahmenform</div>
+          <div class="chip-row chip-multi" id="tvar-chips"></div>
+
+          <div class="sect-sub">Farbe</div>
+          <div class="chip-row chip-multi" id="farbe-chips"></div>
+
+          <div class="sect-sub">Glasbreite [mm]</div>
+          <div class="range-row">
+            <input type="number" id="ew-min" placeholder="von" min="0" max="99" oninput="rebuildList()">
+            <span class="range-sep">–</span>
+            <input type="number" id="ew-max" placeholder="bis" min="0" max="99" oninput="rebuildList()">
+          </div>
+
+          <div class="sect-sub">Eigenschaften</div>
+          <div id="bool-filters">
+            <label class="check-row"><input type="checkbox" id="f-flex" onchange="rebuildList()"><span>Flex-Scharniere</span></label>
+            <label class="check-row"><input type="checkbox" id="f-multi" onchange="rebuildList()"><span>Multifokál geeignet</span></label>
+            <label class="check-row"><input type="checkbox" id="f-eco" onchange="rebuildList()"><span>ECO-friendly</span></label>
+            <label class="check-row"><input type="checkbox" id="f-anose" onchange="rebuildList()"><span>Anatomischer Nasenrücken</span></label>
+            <label class="check-row"><input type="checkbox" id="f-clip" onchange="rebuildList()"><span>Mit Clip-on</span></label>
+          </div>
+
+          <hr class="sect-hr">
+          <div class="sect-sub">Marken</div>
           <div class="mini-btns">
-            <button class="mini-btn" onclick="toggleAllBrands(true)">Vše</button>
-            <button class="mini-btn" onclick="toggleAllBrands(false)">Žádné</button>
+            <button class="mini-btn" onclick="toggleAllBrands(true)">Alle</button>
+            <button class="mini-btn" onclick="toggleAllBrands(false)">Keine</button>
           </div>
           <div class="check-group" id="brand-cb"></div>
         </div>
 
-        <!-- Výběr produktů (skrytý dokud nejsou data) -->
+        <!-- Auswahl -->
         <div id="model-sect" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Vybrat do newsletteru</div>
+          <div class="sect-sub">Für Newsletter auswählen</div>
           <div class="mini-btns">
-            <button class="mini-btn" onclick="selectAll(true)">Vše filtrované</button>
-            <button class="mini-btn" onclick="selectAll(false)">Odebrat vše</button>
+            <button class="mini-btn" onclick="selectAll(true)">Alle (gefiltert)</button>
+            <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
           </div>
           <div class="model-list" id="model-list">
-            <div class="no-models">Nejprve načtěte products.json.</div>
+            <div class="no-models">Bitte products.json laden.</div>
           </div>
         </div>
 
-        <!-- Cena & popis vybraných produktů -->
+        <!-- Preis & Beschreibung -->
         <div id="sel-config-wrap" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Cena &amp; popis vybraných</div>
+          <div class="sect-sub">Preis &amp; Beschreibung</div>
           <div id="sel-config"></div>
         </div>
 
       </div>
     </div>
 
-    <!-- ④ CENY & PODMÍNKY -->
+    <!-- ④ PREISE & KONDITIONEN -->
     <div class="sect">
       <div class="sect-toggle" id="tog-ceny" onclick="toggleSect('ceny')">
-        <div class="sect-title">
-          <span class="sect-num">4</span>Ceny &amp; podmínky
-        </div>
+        <div class="sect-title"><span class="sect-num">4</span>Preise &amp; Konditionen</div>
         <span class="sect-caret" id="caret-ceny">▸</span>
       </div>
       <div id="body-ceny" style="display:none" class="sect-body">
-        <label class="field-label">Text o cenách / akci</label>
-        <textarea id="ceny-text" rows="2" placeholder="napr. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
-        <label class="field-label">Dodací podmínky</label>
-        <textarea id="dodaci" rows="2" placeholder="napr. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
-        <label class="field-label">Závěrečný text</label>
+        <label class="field-label">Preis- / Angebotstext</label>
+        <textarea id="ceny-text" rows="2" placeholder="z.B. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
+        <label class="field-label">Lieferbedingungen</label>
+        <textarea id="dodaci" rows="2" placeholder="z.B. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
+        <label class="field-label">Abschlusstext</label>
         <textarea id="abschluss" rows="3" oninput="refresh()">Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!</textarea>
       </div>
     </div>
 
-    <!-- ⑤ PATIČKA -->
+    <!-- ⑤ FUßZEILE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-pata" onclick="toggleSect('pata')">
-        <div class="sect-title">
-          <span class="sect-num">5</span>Patička
-        </div>
+        <div class="sect-title"><span class="sect-num">5</span>Fußzeile</div>
         <span class="sect-caret" id="caret-pata">▸</span>
       </div>
       <div id="body-pata" style="display:none" class="sect-body">
-        <label class="field-label">Název firmy</label>
+        <label class="field-label">Firmenname</label>
         <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
-        <label class="field-label">Adresa</label>
+        <label class="field-label">Adresse</label>
         <input type="text" id="ftr-adresse" value="Rita Bischoff · Mühlacker" oninput="refresh()">
         <div class="row2">
           <div>
@@ -493,7 +544,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
             <input type="text" id="ftr-fax" value="07041 815 667" oninput="refresh()">
           </div>
         </div>
-        <label class="field-label">E-mail</label>
+        <label class="field-label">E-Mail</label>
         <input type="text" id="ftr-email" value="rb@brillengrosshandel.net" oninput="refresh()">
         <label class="field-label">Web</label>
         <input type="text" id="ftr-web" value="www.brillengrosshandel.net" oninput="refresh()">
@@ -503,14 +554,16 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
   </div><!-- /sidebar -->
 
   <!-- RESIZER -->
-  <div class="resizer" id="resizer" title="Přetáhnout pro změnu šířky"></div>
+  <div class="resizer" id="resizer">
+    <div class="resizer-toggle" id="resizer-toggle" title="Kliknutím skrýt/zobrazit">◀</div>
+  </div>
 
   <!-- PREVIEW -->
   <div class="preview-pane">
     <div class="preview-bar">
       <strong>Vorschau</strong>
-      <span>· <span id="preview-count">0 produktů</span></span>
-      <button class="btn btn-primary mobile-dl" style="display:none;margin-left:auto;font-size:13px;padding:5px 12px;" onclick="downloadHTML()">⬇ Stáhnout</button>
+      <span>· <span id="preview-count">0 Produkte</span></span>
+      <button class="btn btn-primary mobile-dl" style="display:none;margin-left:auto;font-size:13px;padding:5px 12px;" onclick="downloadHTML()">⬇ Herunterladen</button>
     </div>
     <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
   </div>
@@ -525,6 +578,14 @@ let ALL_PRODUCTS = [];
 const selected = new Set();           // Set of gm (number)
 const productExtras = new Map();      // gm → { price: '', desc: '' }
 let activeKolekce = '';
+
+// Chip-multi filter state: key → Set of active values
+const chipFilters = {
+  obruba:   new Set(),
+  material: new Set(),
+  tvar:     new Set(),
+  farbe:    new Set(),
+};
 
 // ════════════════════════════════════════════════════
 //  UTILITIES
@@ -619,10 +680,10 @@ function init() {
 function showFilePicker() {
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status" style="color:#f59e0b;margin-bottom:4px;">
-      Vyber aktuální products.json:
+      Bitte aktuelle products.json wählen:
     </div>
     <label class="file-btn-label" for="file-input">
-      📂 Vybrat products.json
+      📂 products.json auswählen
     </label>
     <input type="file" id="file-input" accept=".json" onchange="handleFileInput(this)">
   `;
@@ -631,7 +692,7 @@ function showFilePicker() {
 function clearCacheAndReload() {
   localStorage.removeItem('productsJson');
   document.getElementById('load-ui').innerHTML =
-    '<div class="prod-status">Načítám z GitHubu…</div>';
+    '<div class="prod-status">Lade von GitHub…</div>';
   const GH_JSON = 'https://raw.githubusercontent.com/kaiserjiri/newsletter-builder/main/products.json';
   fetch(GH_JSON)
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -649,7 +710,7 @@ function handleFileInput(input) {
       onProductsLoaded(data);
     } catch(err) {
       document.getElementById('load-ui').innerHTML =
-        '<div class="prod-status error">Chyba: soubor není platný JSON.</div>';
+        '<div class="prod-status error">Fehler: Datei ist kein gültiges JSON.</div>';
     }
   };
   reader.readAsText(file);
@@ -664,18 +725,16 @@ function onProductsLoaded(data, fromCache = false) {
   }
 
   document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
-  const cacheNote = fromCache
-    ? `<span style="color:#f59e0b;font-size:12px;">● offline cache</span>`
-    : `<span style="color:#22c55e;font-size:12px;">● GitHub</span>`;
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status" style="display:flex;align-items:center;justify-content:center;gap:6px;">
-      ✓ <strong>${ALL_PRODUCTS.length}</strong> produktů ${cacheNote}
+      ✓ <strong>${ALL_PRODUCTS.length}</strong> Produkte
     </div>
-    <span class="reload-link" onclick="clearCacheAndReload()">↺ Načíst nový soubor…</span>
+    <span class="reload-link" onclick="clearCacheAndReload()">↺ Neue Datei laden…</span>
   `;
   document.getElementById('filter-sect').style.display = '';
   document.getElementById('model-sect').style.display = '';
   buildBrandCheckboxes();
+  buildDynamicChips();
   rebuildList();
 }
 
@@ -701,21 +760,115 @@ function getCheckedBrands() {
 }
 
 // ════════════════════════════════════════════════════
+//  DYNAMIC CHIP FILTERS
+// ════════════════════════════════════════════════════
+const CHIP_CONFIG = [
+  { key: 'obruba',   specKey: 'Obruba',          containerId: 'obruba-chips'   },
+  { key: 'material', specKey: 'Materiál',         containerId: 'material-chips' },
+  { key: 'tvar',     specKey: 'Tvar rámečku',     containerId: 'tvar-chips'     },
+  { key: 'farbe',    specKey: 'Barva produktu',    containerId: 'farbe-chips'    },
+];
+
+function buildDynamicChips() {
+  for (const cfg of CHIP_CONFIG) {
+    const vals = [...new Set(
+      ALL_PRODUCTS
+        .map(p => ((p.specs || {})[cfg.specKey] || '').trim())
+        .filter(Boolean)
+    )].sort();
+    const container = document.getElementById(cfg.containerId);
+    if (!container) continue;
+    if (!vals.length) {
+      container.parentElement && (container.style.display = 'none');
+      // hide the sect-sub label above it too
+      const prev = container.previousElementSibling;
+      if (prev && prev.classList.contains('sect-sub')) prev.style.display = 'none';
+      continue;
+    }
+    container.innerHTML = vals.map(v => `
+      <span class="chip" data-filter-key="${cfg.key}" data-filter-val="${esc(v)}"
+            onclick="toggleChipFilter('${cfg.key}','${esc(v)}',this)">${esc(v)}</span>
+    `).join('');
+  }
+}
+
+function toggleChipFilter(key, val, el) {
+  if (chipFilters[key].has(val)) {
+    chipFilters[key].delete(val);
+    el.classList.remove('active');
+  } else {
+    chipFilters[key].add(val);
+    el.classList.add('active');
+  }
+  rebuildList();
+}
+
+// ════════════════════════════════════════════════════
 //  FILTERING
 // ════════════════════════════════════════════════════
+function specVal(p, key) {
+  return ((p.specs || {})[key] || '').trim();
+}
+
 function filteredProducts() {
-  const search = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
-  const brands = getCheckedBrands();
+  const search  = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
+  const brands  = getCheckedBrands();
+  const ewMin   = parseFloat(document.getElementById('ew-min')?.value) || null;
+  const ewMax   = parseFloat(document.getElementById('ew-max')?.value) || null;
+  const fFlex   = document.getElementById('f-flex')?.checked;
+  const fMulti  = document.getElementById('f-multi')?.checked;
+  const fEco    = document.getElementById('f-eco')?.checked;
+  const fAnose  = document.getElementById('f-anose')?.checked;
+  const fClip   = document.getElementById('f-clip')?.checked;
+
   return ALL_PRODUCTS.filter(p => {
+    const sp = p.specs || {};
+
+    // Brand
     if (brands.length && !brands.includes(p.brand)) return false;
+
+    // Kollektion
     if (activeKolekce) {
-      const k = ((p.specs || {})['Kolekce'] || '').toLowerCase();
+      const k = (sp['Kolekce'] || '').toLowerCase();
       if (!k.includes(activeKolekce)) return false;
     }
+
+    // Text search
     if (search) {
       const hay = (p.brand + ' ' + p.modelName + ' ' + p.modelNum).toLowerCase();
-      if (!search.split(/\s+/).every(term => hay.includes(term))) return false;
+      if (!search.split(/\s+/).every(t => hay.includes(t))) return false;
     }
+
+    // Chip-multi filters
+    const chipMap = {
+      obruba:   'Obruba',
+      material: 'Materiál',
+      tvar:     'Tvar rámečku',
+      farbe:    'Barva produktu',
+    };
+    for (const [key, specKey] of Object.entries(chipMap)) {
+      if (chipFilters[key].size) {
+        const val = specVal(p, specKey);
+        if (![...chipFilters[key]].some(v => val.toLowerCase().includes(v.toLowerCase()))) return false;
+      }
+    }
+
+    // Glasbreite range
+    if (ewMin !== null || ewMax !== null) {
+      const raw = specVal(p, 'Šířka očnice [mm]');
+      const num = parseFloat(raw);
+      if (isNaN(num)) return false;
+      if (ewMin !== null && num < ewMin) return false;
+      if (ewMax !== null && num > ewMax) return false;
+    }
+
+    // Boolean filters (ANO = yes)
+    if (fFlex  && !/^ano$/i.test(specVal(p, 'Flex')))                      return false;
+    if (fMulti && !/^ano$/i.test(specVal(p, 'Multifokál')))                 return false;
+    if (fEco   && !/^ano$/i.test(specVal(p, 'ECO-friendly')))               return false;
+    if (fAnose && !/^ano$/i.test(specVal(p, 'Anatomický nosník')))           return false;
+    if (fClip  && !/^ano$/i.test(specVal(p, '1. Clip-on')))                 return false;
+
     return true;
   });
 }
@@ -731,7 +884,7 @@ function rebuildList() {
   const show  = items.slice(0, MAX_DISPLAY);
 
   if (!items.length) {
-    list.innerHTML = '<div class="no-models">Žádné produkty pro tyto filtry.</div>';
+    list.innerHTML = '<div class="no-models">Keine Produkte für diese Filter.</div>';
     return;
   }
 
@@ -762,7 +915,7 @@ function rebuildList() {
   }).join('');
 
   if (items.length > MAX_DISPLAY) {
-    list.innerHTML += `<div class="more-label">… a dalších ${items.length - MAX_DISPLAY} produktů · upřesněte hledání</div>`;
+    list.innerHTML += `<div class="more-label">… und ${items.length - MAX_DISPLAY} weitere · Suche verfeinern</div>`;
   }
   updateCount();
 }
@@ -785,8 +938,8 @@ function toggleProd(gm, el) {
 
 function updateCount() {
   document.getElementById('sel-count').textContent = selected.size;
-  document.getElementById('preview-count').textContent = selected.size + ' produkt' + (
-    selected.size === 1 ? '' : selected.size < 5 ? 'y' : 'ů'
+  document.getElementById('preview-count').textContent = selected.size + ' Produkt' + (
+    selected.size === 1 ? '' : 'e'
   );
 }
 
@@ -938,7 +1091,7 @@ function buildHTML() {
 
   const noContent = !selProds.length
     ? `<div style="background:#fff;text-align:center;padding:60px;color:#94a3b8;font-size:16px;border-radius:10px;margin-top:16px;">
-        Keine Produkte ausgewählt.<br><em style="font-size:14px">Kliknutím na produkt v levém panelu ho přidáte do newsletteru.</em>
+        Keine Produkte ausgewählt.<br><em style="font-size:14px">Produkt im linken Bereich anklicken, um es hinzuzufügen.</em>
        </div>` : '';
 
   // Ceny & podmínky block (only if filled)
@@ -1080,7 +1233,7 @@ function downloadHTML() {
   a.href = URL.createObjectURL(blob);
   a.download = `newsletter_KW${kw}_${jahr}.html`;
   document.body.appendChild(a); a.click(); a.remove();
-  showStatus(`newsletter_KW${kw}_${jahr}.html stažen!`);
+  showStatus(`newsletter_KW${kw}_${jahr}.html heruntergeladen!`);
 }
 
 function showStatus(msg) {
@@ -1115,6 +1268,16 @@ function resetAll() {
     if (si) si.value = '';
     activeKolekce = '';
     document.querySelectorAll('#kolekce-chips .chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    // Reset chip-multi filters
+    for (const key of Object.keys(chipFilters)) chipFilters[key].clear();
+    document.querySelectorAll('.chip-multi .chip').forEach(c => c.classList.remove('active'));
+    // Reset range
+    const ewMin = document.getElementById('ew-min'); if (ewMin) ewMin.value = '';
+    const ewMax = document.getElementById('ew-max'); if (ewMax) ewMax.value = '';
+    // Reset bool
+    ['f-flex','f-multi','f-eco','f-anose','f-clip'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.checked = false;
+    });
     rebuildList();
   }
   rebuildSelConfig();
@@ -1127,18 +1290,44 @@ function resetAll() {
 // ════════════════════════════════════════════════════
 function initResizer() {
   const resizer = document.getElementById('resizer');
+  const toggleBtn = document.getElementById('resizer-toggle');
   const sidebar = document.querySelector('.sidebar');
   if (!resizer || !sidebar) return;
 
-  let dragging = false, startX = 0, startW = 0;
+  let dragging = false, startX = 0, startW = 0, lastW = 340;
+
+  function collapse() {
+    if (sidebar.classList.contains('collapsed')) {
+      sidebar.classList.remove('collapsed');
+      sidebar.style.width = lastW + 'px';
+      if (toggleBtn) toggleBtn.textContent = '◀';
+    } else {
+      lastW = sidebar.offsetWidth || 340;
+      sidebar.classList.add('collapsed');
+      sidebar.style.width = '';
+      if (toggleBtn) toggleBtn.textContent = '▶';
+    }
+  }
+
+  // Toggle button click
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', e => { e.stopPropagation(); collapse(); });
+  }
+
+  // Double-click resizer
+  resizer.addEventListener('dblclick', collapse);
 
   function onStart(e) {
+    if (e.target === toggleBtn) return; // let toggle handle its click
+    if (sidebar.classList.contains('collapsed')) { collapse(); return; }
     dragging = true;
     startX = e.clientX ?? e.touches[0].clientX;
     startW = sidebar.offsetWidth;
     resizer.classList.add('dragging');
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
+    // disable transition during drag
+    sidebar.style.transition = 'none';
     e.preventDefault();
   }
 
@@ -1148,6 +1337,7 @@ function initResizer() {
     if (x == null) return;
     const newW = Math.max(220, Math.min(window.innerWidth * 0.7, startW + x - startX));
     sidebar.style.width = newW + 'px';
+    lastW = newW;
   }
 
   function onEnd() {
@@ -1156,6 +1346,7 @@ function initResizer() {
     resizer.classList.remove('dragging');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    sidebar.style.transition = ''; // re-enable transition
   }
 
   resizer.addEventListener('mousedown', onStart);
