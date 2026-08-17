@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newsletter Builder – Brillengroßhandel</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial Black%2CArial' font-weight='900' font-size='22' fill='%23e87722'%3EB%3C/text%3E%3C/svg%3E">
+<style>
+/* ─── RESET ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --acc: #e87722;
+  --dark: #0f172a;
+  --mid: #334155;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+  font-size: 15px;
+  color: var(--dark);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TOP BAR ────────────────────────────────────────── */
+.topbar {
+  background: var(--dark);
+  height: 52px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar-logo { font-size: 17px; font-weight: 900; color: var(--acc); letter-spacing: 2px; text-transform: uppercase; }
+.topbar-logo span { color: white; }
+.topbar-sub { font-size: 13px; color: #475569; margin-left: -4px; }
+.topbar-spacer { flex: 1; }
+.btn {
+  padding: 7px 16px; border: none; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s; white-space: nowrap;
+}
+.btn:hover { opacity: 0.82; }
+.btn-primary { background: var(--acc); color: white; }
+.btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+.btn-ghost:hover { color: white; opacity: 1; border-color: #64748b; }
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+.main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+/* ─── SIDEBAR ────────────────────────────────────────── */
+.sidebar {
+  width: 340px; min-width: 0;
+  background: white; border-right: 1px solid var(--border);
+  overflow-y: auto; flex-shrink: 0;
+  transition: width 0.25s ease;
+}
+.sidebar.collapsed { width: 0 !important; overflow: hidden; border-right: none; }
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
+
+/* Collapsible sections */
+.sect { border-bottom: 1px solid var(--border); }
+.sect-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px; cursor: pointer; user-select: none;
+  transition: background 0.1s;
+}
+.sect-toggle:hover { background: #f8fafc; }
+.sect-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #94a3b8;
+  display: flex; align-items: center; gap: 7px;
+}
+.sect-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--border); color: #64748b;
+  font-size: 11px; font-weight: 800; flex-shrink: 0;
+}
+.sect-toggle.open .sect-num { background: var(--acc); color: white; }
+.sect-caret {
+  font-size: 12px; color: #cbd5e1; transition: transform 0.2s;
+}
+.sect-badge {
+  background: var(--acc); color: white; font-size: 11px; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+}
+.sect-body { padding: 0 16px 14px; }
+.sect-sub {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #94a3b8;
+  margin: 10px 0 5px;
+}
+.sect-hr { border: none; border-top: 1px dashed #e2e8f0; margin: 10px 0; }
+
+.field-label {
+  display: block; font-size: 13px; font-weight: 600; color: var(--mid);
+  margin-bottom: 3px; margin-top: 9px;
+}
+.field-label:first-child { margin-top: 0; }
+
+input[type=text], input[type=number], textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 14px; color: var(--dark);
+  background: white; outline: none; font-family: inherit;
+}
+input[type=text]:focus, input[type=number]:focus, textarea:focus {
+  border-color: var(--acc); box-shadow: 0 0 0 2px rgba(232,119,34,0.12);
+}
+textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+/* Search */
+.search-wrap { position: relative; margin-bottom: 8px; }
+.search-wrap input[type=text] { padding-left: 30px; }
+.search-icon {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  color: #94a3b8; font-size: 14px; pointer-events: none; line-height: 1;
+}
+
+/* Chips */
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.chip {
+  font-size: 12px; font-weight: 600; padding: 3px 9px;
+  border: 1px solid var(--border); border-radius: 12px;
+  cursor: pointer; color: var(--muted); background: white;
+  transition: all 0.12s; user-select: none; white-space: nowrap;
+}
+.chip:hover { border-color: var(--acc); color: var(--acc); }
+.chip.active { background: var(--acc); color: white; border-color: var(--acc); }
+
+/* Mini buttons */
+.mini-btns { display: flex; gap: 5px; margin-bottom: 7px; }
+.mini-btn {
+  font-size: 12px; padding: 2px 8px; border: 1px solid var(--border);
+  border-radius: 4px; background: none; cursor: pointer; color: #64748b;
+  transition: border-color 0.15s, color 0.15s;
+}
+.mini-btn:hover { border-color: var(--acc); color: var(--acc); }
+
+/* Checkboxes */
+.check-group {
+  display: flex; flex-direction: column; gap: 2px;
+  max-height: 130px; overflow-y: auto;
+}
+.check-group::-webkit-scrollbar { width: 3px; }
+.check-group::-webkit-scrollbar-thumb { background: #e2e8f0; }
+.check-row {
+  display: flex; align-items: center; gap: 7px; cursor: pointer;
+  padding: 3px 6px; border-radius: 5px; transition: background 0.1s;
+}
+.check-row:hover { background: #f8fafc; }
+.check-row input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--acc); cursor: pointer; flex-shrink: 0; }
+.check-row span { font-size: 13px; color: var(--mid); user-select: none; }
+
+/* Load UI */
+.prod-status { font-size: 13px; color: var(--muted); padding: 6px 0; text-align: center; }
+.prod-status.error { color: #ef4444; }
+.file-btn-label {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 12px; background: #f8fafc;
+  border: 1.5px dashed #cbd5e1; border-radius: 7px;
+  font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
+  transition: all 0.15s; margin-top: 6px;
+}
+.file-btn-label:hover { border-color: var(--acc); color: var(--acc); background: #fff8f3; }
+#file-input { display: none; }
+.reload-link {
+  display: inline-block; margin-top: 4px; font-size: 12px;
+  color: var(--muted); text-decoration: underline; cursor: pointer; text-align: center;
+  width: 100%;
+}
+.reload-link:hover { color: var(--acc); }
+
+/* Model list */
+.model-list {
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 240px; overflow-y: auto;
+}
+.model-list::-webkit-scrollbar { width: 3px; }
+.model-list::-webkit-scrollbar-thumb { background: #e2e8f0; }
+.model-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border: 1px solid var(--border);
+  border-radius: 7px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.model-item:hover { border-color: #cbd5e1; background: #fafafa; }
+.model-item.on { border-color: var(--acc); background: #fff8f3; }
+.model-thumb {
+  width: 58px; height: 38px; object-fit: cover;
+  border-radius: 4px; border: 1px solid var(--border);
+  flex-shrink: 0; background: #f1f5f9; display: block;
+}
+.model-item-info { flex: 1; min-width: 0; }
+.model-brand { font-size: 11px; font-weight: 700; color: var(--acc); text-transform: uppercase; letter-spacing: 0.5px; }
+.model-name  { font-size: 14px; font-weight: 700; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.model-sub   { font-size: 12px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.var-dots { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; }
+.var-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+.model-add { font-size: 17px; font-weight: 700; color: #cbd5e1; flex-shrink: 0; width: 18px; text-align: center; line-height: 1; }
+.model-item.on .model-add { color: var(--acc); }
+.no-models { font-size: 14px; color: #94a3b8; text-align: center; padding: 16px 0; }
+.more-label { font-size: 12px; color: #94a3b8; text-align: center; padding: 6px 0; font-style: italic; }
+
+/* Selected product config */
+.sel-card {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; margin-bottom: 6px; background: #fafafa;
+}
+.sel-card:last-child { margin-bottom: 0; }
+.sel-card-brand { font-size: 11px; font-weight: 700; color: var(--acc); text-transform: uppercase; letter-spacing: 0.5px; }
+.sel-card-name { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Range row */
+.range-row {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.range-row input[type=number] {
+  flex: 1; text-align: center; padding: 5px 6px;
+}
+.range-sep { color: #94a3b8; font-size: 13px; flex-shrink: 0; }
+
+/* Bool filter checkboxes */
+#bool-filters { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+
+/* ─── RESIZER ────────────────────────────────────────── */
+.resizer {
+  width: 24px; flex-shrink: 0; background: transparent;
+  cursor: ew-resize; position: relative; user-select: none;
+}
+.resizer::before {
+  content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 4px; transform: translateX(-50%);
+  background: var(--border); transition: background 0.15s;
+}
+.resizer:hover::before, .resizer.dragging::before { background: var(--acc); }
+.resizer-toggle {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px; height: 36px;
+  background: white; border: 1px solid var(--border);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #94a3b8; cursor: pointer;
+  transition: all 0.15s; z-index: 1; line-height: 1;
+}
+.resizer:hover .resizer-toggle, .resizer.dragging .resizer-toggle {
+  background: var(--acc); border-color: var(--acc); color: white;
+}
+.sidebar.collapsed ~ .resizer .resizer-toggle { content: '▶'; }
+
+@media (max-width: 768px) { .resizer { display: none; } }
+
+/* ─── PREVIEW ────────────────────────────────────────── */
+.preview-pane { flex: 1; overflow: hidden; display: flex; flex-direction: column; background: #e2e8f0; padding: 0 10px 10px 0; }
+.preview-bar { margin-bottom: 0; }
+.preview-bar {
+  background: #f8fafc; border-bottom: 1px solid var(--border);
+  padding: 7px 16px; font-size: 13px; color: #94a3b8;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.preview-bar strong { color: var(--mid); }
+.preview-frame { flex: 1; width: 100%; border: none; display: block; border-radius: 8px; }
+
+/* ─── MOBILE TABS ────────────────────────────────────── */
+.mobile-tabs { display: none; gap: 6px; }
+.tab-btn {
+  padding: 6px 12px;
+  border: 1.5px solid #475569;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.tab-btn.active { background: var(--acc); color: white; border-color: var(--acc); }
+
+@media (max-width: 768px) {
+  html, body { height: auto; overflow: auto; }
+  /* Topbar: 2 řádky — logo nahoře, záložky dole přes celou šířku */
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 16px;
+    gap: 6px;
+  }
+  .topbar-spacer { display: none; }
+  .btn-ghost, .btn-primary { display: none; }
+  .topbar-sub { display: none; }
+  .topbar-logo { font-size: 15px; letter-spacing: 1px; }
+  .mobile-tabs {
+    display: flex;
+    width: 100%;
+    gap: 0;
+    margin-left: 0;
+  }
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    border-radius: 6px;
+    margin: 0 3px;
+  }
+  /* Layout */
+  .main { flex-direction: column; overflow: visible; flex: none; }
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    border-right: none;
+    overflow-y: visible;
+  }
+  .preview-pane { display: none; }
+  .main.show-preview .sidebar { display: none; }
+  .main.show-preview .preview-pane {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+  .main.show-preview .preview-frame {
+    flex: none;
+    width: calc(100% - 24px);
+    margin: 8px 12px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  /* Download button — zobrazit uvnitř preview baru na mobilu */
+  .preview-bar .mobile-dl { display: inline-flex !important; }
+}
+
+/* ─── STATUS ─────────────────────────────────────────── */
+.status {
+  background: #f0fdf4; border-top: 1px solid #bbf7d0; height: 26px;
+  padding: 0 16px; font-size: 13px; color: #16a34a;
+  display: none; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.status.show { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">BRILLEN<span>GROẞHANDEL</span></div>
+    <div class="topbar-sub">Newsletter Builder · MI Optics</div>
+  </div>
+  <div class="mobile-tabs">
+    <button class="tab-btn active" data-tab="edit" onclick="switchTab('edit')">✏️ Bearbeiten</button>
+    <button class="tab-btn" data-tab="preview" onclick="switchTab('preview')">👁 Vorschau</button>
+  </div>
+  <div class="topbar-spacer"></div>
+  <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
+  <button class="btn btn-primary" onclick="downloadHTML()">⬇ HTML generieren</button>
+</div>
+
+<div class="main">
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <div class="sidebar">
+
+    <!-- ① KOPFZEILE -->
+    <div class="sect">
+      <div class="sect-toggle" id="tog-zahlaví" onclick="toggleSect('zahlaví')">
+        <div class="sect-title"><span class="sect-num">1</span>Kopfzeile</div>
+        <span class="sect-caret" id="caret-zahlaví">▸</span>
+      </div>
+      <div id="body-zahlaví" style="display:none" class="sect-body">
+        <label class="field-label">Firmenname</label>
+        <input type="text" id="firma" value="BRILLENGROSSHANDEL" oninput="refresh()">
+        <div class="row3" style="margin-top:9px">
+          <div>
+            <label class="field-label" style="margin-top:0">KW</label>
+            <input type="number" id="kw" value="33" min="1" max="53" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label" style="margin-top:0">Jahr</label>
+            <input type="number" id="jahr" value="2026" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label" style="margin-top:0">Datum</label>
+            <input type="text" id="datum" value="Aug 2026" oninput="refresh()">
+          </div>
+        </div>
+        <label class="field-label">Tagline / Slogan</label>
+        <input type="text" id="tagline" value="Rita Bischoff · Mühlacker" oninput="refresh()">
+      </div>
+    </div>
+
+    <!-- ② EINLEITUNG -->
+    <div class="sect">
+      <div class="sect-toggle" id="tog-uvod" onclick="toggleSect('uvod')">
+        <div class="sect-title"><span class="sect-num">2</span>Einleitung</div>
+        <span class="sect-caret" id="caret-uvod">▸</span>
+      </div>
+      <div id="body-uvod" style="display:none" class="sect-body">
+        <label class="field-label">Newsletter-Thema</label>
+        <input type="text" id="thema" value="Kinder &amp; Jugendliche" oninput="refresh()">
+        <label class="field-label">Einleitungstext</label>
+        <textarea id="intro" rows="4" oninput="refresh()">Liebe Augenoptiker:innen, liebe Freunde,
+diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
+      </div>
+    </div>
+
+    <!-- ③ PRODUKTE (default open) -->
+    <div class="sect">
+      <div class="sect-toggle open" id="tog-produkty" onclick="toggleSect('produkty')">
+        <div class="sect-title">
+          <span class="sect-num">3</span>Produkte
+          <span class="sect-badge" id="sel-count">0</span>
+        </div>
+        <span class="sect-caret" id="caret-produkty">▾</span>
+      </div>
+      <div id="body-produkty" class="sect-body">
+
+        <!-- Daten laden -->
+        <div class="sect-sub">Daten <span class="sect-badge" id="prod-count">—</span></div>
+        <div id="load-ui">
+          <div class="prod-status">Lade products.json…</div>
+        </div>
+
+        <!-- Filtry (skryté dokud nejsou data) -->
+        <div id="filter-sect" style="display:none">
+          <hr class="sect-hr">
+          <div class="sect-sub">Suchen &amp; Filtern</div>
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input type="text" id="prod-search" placeholder="Marke, Modell, Nummer…" oninput="rebuildList()">
+          </div>
+
+          <div class="sect-sub" style="margin-top:6px">Kollektion</div>
+          <div class="chip-row" id="kolekce-chips">
+            <span class="chip active" data-kolekce="">Alle</span>
+            <span class="chip" data-kolekce="dámské">Damen</span>
+            <span class="chip" data-kolekce="pánské">Herren</span>
+            <span class="chip" data-kolekce="dětské">Kinder</span>
+            <span class="chip" data-kolekce="dívčí">Mädchen</span>
+            <span class="chip" data-kolekce="chlapecké">Jungen</span>
+            <span class="chip" data-kolekce="unisex">Unisex</span>
+            <span class="chip" data-kolekce="junior">Junior</span>
+          </div>
+
+          <div class="sect-sub">Fassung</div>
+          <div class="chip-row chip-multi" id="obruba-chips"></div>
+
+          <div class="sect-sub">Material</div>
+          <div class="chip-row chip-multi" id="material-chips"></div>
+
+          <div class="sect-sub">Rahmenform</div>
+          <div class="chip-row chip-multi" id="tvar-chips"></div>
+
+          <div class="sect-sub">Farbe</div>
+          <div class="chip-row chip-multi" id="farbe-chips"></div>
+
+          <div class="sect-sub">Glasbreite [mm]</div>
+          <div class="range-row">
+            <input type="number" id="ew-min" placeholder="von" min="0" max="99" oninput="rebuildList()">
+            <span class="range-sep">–</span>
+            <input type="number" id="ew-max" placeholder="bis" min="0" max="99" oninput="rebuildList()">
+          </div>
+
+          <div class="sect-sub">Eigenschaften</div>
+          <div id="bool-filters">
+            <label class="check-row"><input type="checkbox" id="f-flex" onchange="rebuildList()"><span>Flex-Scharniere</span></label>
+            <label class="check-row"><input type="checkbox" id="f-multi" onchange="rebuildList()"><span>Für Gleitsichtgläser geeignet</span></label>
+          </div>
+
+          <hr class="sect-hr">
+          <div class="sect-sub">Marken</div>
+          <div class="mini-btns">
+            <button class="mini-btn" onclick="toggleAllBrands(true)">Alle</button>
+            <button class="mini-btn" onclick="toggleAllBrands(false)">Keine</button>
+          </div>
+          <div class="check-group" id="brand-cb"></div>
+        </div>
+
+        <!-- Auswahl -->
+        <div id="model-sect" style="display:none">
+          <hr class="sect-hr">
+          <div class="sect-sub">Für Newsletter auswählen</div>
+          <div class="mini-btns">
+            <button class="mini-btn" onclick="selectAll(true)">Alle (gefiltert)</button>
+            <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
+          </div>
+          <div class="model-list" id="model-list">
+            <div class="no-models">Bitte products.json laden.</div>
+          </div>
+        </div>
+
+        <!-- Preis & Beschreibung -->
+        <div id="sel-config-wrap" style="display:none">
+          <hr class="sect-hr">
+          <div class="sect-sub">Preis &amp; Beschreibung</div>
+          <div id="sel-config"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ④ PREISE & KONDITIONEN -->
+    <div class="sect">
+      <div class="sect-toggle" id="tog-ceny" onclick="toggleSect('ceny')">
+        <div class="sect-title"><span class="sect-num">4</span>Preise &amp; Konditionen</div>
+        <span class="sect-caret" id="caret-ceny">▸</span>
+      </div>
+      <div id="body-ceny" style="display:none" class="sect-body">
+        <label class="field-label">Preis- / Angebotstext</label>
+        <textarea id="ceny-text" rows="2" placeholder="z.B. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
+        <label class="field-label">Lieferbedingungen</label>
+        <textarea id="dodaci" rows="2" placeholder="z.B. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
+        <label class="field-label">Abschlusstext</label>
+        <textarea id="abschluss" rows="3" oninput="refresh()">Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!</textarea>
+      </div>
+    </div>
+
+    <!-- ⑤ FUßZEILE -->
+    <div class="sect">
+      <div class="sect-toggle" id="tog-pata" onclick="toggleSect('pata')">
+        <div class="sect-title"><span class="sect-num">5</span>Fußzeile</div>
+        <span class="sect-caret" id="caret-pata">▸</span>
+      </div>
+      <div id="body-pata" style="display:none" class="sect-body">
+        <label class="field-label">Firmenname</label>
+        <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
+        <label class="field-label">Adresse</label>
+        <input type="text" id="ftr-adresse" value="Rita Bischoff · Mühlacker" oninput="refresh()">
+        <div class="row2">
+          <div>
+            <label class="field-label">Tel</label>
+            <input type="text" id="ftr-tel" value="+49 7041 815-664" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">Fax</label>
+            <input type="text" id="ftr-fax" value="07041 815 667" oninput="refresh()">
+          </div>
+        </div>
+        <label class="field-label">E-Mail</label>
+        <input type="text" id="ftr-email" value="rb@brillengrosshandel.net" oninput="refresh()">
+        <label class="field-label">Web</label>
+        <input type="text" id="ftr-web" value="www.brillengrosshandel.net" oninput="refresh()">
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- RESIZER -->
+  <div class="resizer" id="resizer">
+    <div class="resizer-toggle" id="resizer-toggle" title="Kliknutím skrýt/zobrazit">◀</div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-pane">
+    <div class="preview-bar">
+      <strong>Vorschau</strong>
+      <span>· <span id="preview-count">0 Produkte</span></span>
+      <button class="btn btn-primary mobile-dl" style="display:none;margin-left:auto;font-size:13px;padding:5px 12px;" onclick="downloadHTML()">⬇ Herunterladen</button>
+    </div>
+    <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
+  </div>
+</div>
+<div class="status" id="status"></div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+let ALL_PRODUCTS = [];
+const selected = new Set();           // Set of gm (number)
+const productExtras = new Map();      // gm → { price: '', desc: '' }
+let activeKolekce = '';
+
+// Chip-multi filter state: key → Set of active values
+const chipFilters = {
+  obruba:   new Set(),
+  material: new Set(),
+  tvar:     new Set(),
+  farbe:    new Set(),  // base color (Czech key, German label)
+};
+
+// ════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function imgUrl(hash) {
+  if (!hash) return null;
+  const a = hash.substring(0, 2);
+  const b = hash.substring(2, 4);
+  return `https://cz.mi-optics.cz/img-products/${a}/${b}/${hash}`;
+}
+
+const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="105">' +
+  '<rect width="200" height="105" fill="#f1f5f9" rx="6"/>' +
+  '<text x="100" y="58" text-anchor="middle" font-family="Arial" font-size="11" fill="#94a3b8">Kein Bild</text>' +
+  '</svg>'
+);
+
+function colorToBg(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('čern') || n.includes('black')) return '#1e293b';
+  if (n.includes('bíl') || n.includes('white')) return '#e2e8f0';
+  if (n.includes('šed') || n.includes('grey') || n.includes('gray')) return '#94a3b8';
+  if (n.includes('stříbrn') || n.includes('silver')) return '#cbd5e1';
+  if (n.includes('zlat') || n.includes('gold')) return '#d97706';
+  if (n.includes('červen') || n.includes('red')) return '#ef4444';
+  if (n.includes('modr') || n.includes('blue')) return '#3b82f6';
+  if (n.includes('tmavě modr') || n.includes('navy')) return '#1e3a8a';
+  if (n.includes('zelen') || n.includes('green')) return '#22c55e';
+  if (n.includes('fialovo') || n.includes('purple') || n.includes('violet')) return '#a855f7';
+  if (n.includes('hnědá') || n.includes('brown') || n.includes('havanna')) return '#92400e';
+  if (n.includes('růžov') || n.includes('pink')) return '#ec4899';
+  if (n.includes('oranžov') || n.includes('orange')) return '#f97316';
+  if (n.includes('tyrkys') || n.includes('cyan') || n.includes('turquoise')) return '#06b6d4';
+  if (n.includes('transparent')) return '#e2e8f0';
+  if (n.includes('gun') || n.includes('metal')) return '#64748b';
+  return '#94a3b8';
+}
+
+// ════════════════════════════════════════════════════
+//  COLLAPSIBLE SECTIONS
+// ════════════════════════════════════════════════════
+function toggleSect(id) {
+  const body  = document.getElementById('body-' + id);
+  const caret = document.getElementById('caret-' + id);
+  const tog   = document.getElementById('tog-' + id);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  if (caret) caret.textContent = isOpen ? '▸' : '▾';
+  if (tog)   tog.classList.toggle('open', !isOpen);
+}
+
+// ════════════════════════════════════════════════════
+//  LOADING
+// ════════════════════════════════════════════════════
+function init() {
+  document.getElementById('kolekce-chips').addEventListener('click', e => {
+    const chip = e.target.closest('.chip[data-kolekce]');
+    if (!chip) return;
+    document.querySelectorAll('#kolekce-chips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeKolekce = chip.dataset.kolekce;
+    rebuildList();
+  });
+
+  refresh();
+
+  // 1. Zkus fetch přímo z GitHubu (vždy aktuální)
+  const GH_JSON = 'https://raw.githubusercontent.com/kaiserjiri/newsletter-builder/main/products.json';
+  fetch(GH_JSON)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => onProductsLoaded(data))
+    .catch(() => {
+      // 2. GitHub nedostupný → zkus localStorage cache
+      const cached = localStorage.getItem('productsJson');
+      if (cached) {
+        try { onProductsLoaded(JSON.parse(cached), true); return; }
+        catch(e) { localStorage.removeItem('productsJson'); }
+      }
+      // 3. Nic → ruční výběr souboru
+      showFilePicker();
+    });
+}
+
+function showFilePicker() {
+  document.getElementById('load-ui').innerHTML = `
+    <div class="prod-status" style="color:#f59e0b;margin-bottom:4px;">
+      Bitte aktuelle products.json wählen:
+    </div>
+    <label class="file-btn-label" for="file-input">
+      📂 products.json auswählen
+    </label>
+    <input type="file" id="file-input" accept=".json" onchange="handleFileInput(this)">
+  `;
+}
+
+function clearCacheAndReload() {
+  localStorage.removeItem('productsJson');
+  document.getElementById('load-ui').innerHTML =
+    '<div class="prod-status">Lade von GitHub…</div>';
+  const GH_JSON = 'https://raw.githubusercontent.com/kaiserjiri/newsletter-builder/main/products.json';
+  fetch(GH_JSON)
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => onProductsLoaded(data))
+    .catch(() => showFilePicker());
+}
+
+function handleFileInput(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      onProductsLoaded(data);
+    } catch(err) {
+      document.getElementById('load-ui').innerHTML =
+        '<div class="prod-status error">Fehler: Datei ist kein gültiges JSON.</div>';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function onProductsLoaded(data, fromCache = false) {
+  ALL_PRODUCTS = Array.isArray(data) ? data : [];
+
+  // Uložit do cache (pokud není z cache)
+  if (!fromCache) {
+    try { localStorage.setItem('productsJson', JSON.stringify(data)); } catch(e) {}
+  }
+
+  document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
+  document.getElementById('load-ui').innerHTML = `
+    <div class="prod-status" style="display:flex;align-items:center;justify-content:center;gap:6px;">
+      ✓ <strong>${ALL_PRODUCTS.length}</strong> Produkte
+    </div>
+    <span class="reload-link" onclick="clearCacheAndReload()">↺ Neue Datei laden…</span>
+  `;
+  document.getElementById('filter-sect').style.display = '';
+  document.getElementById('model-sect').style.display = '';
+  buildBrandCheckboxes();
+  buildDynamicChips();
+  rebuildList();
+}
+
+// ════════════════════════════════════════════════════
+//  BRAND CHECKBOXES
+// ════════════════════════════════════════════════════
+function buildBrandCheckboxes() {
+  const brands = [...new Set(ALL_PRODUCTS.map(p => p.brand))].sort();
+  document.getElementById('brand-cb').innerHTML = brands.map(b => `
+    <label class="check-row">
+      <input type="checkbox" data-brand value="${esc(b)}" checked onchange="rebuildList()">
+      <span>${esc(b)}</span>
+    </label>`).join('');
+}
+
+function toggleAllBrands(on) {
+  document.querySelectorAll('[data-brand]').forEach(el => el.checked = on);
+  rebuildList();
+}
+
+function getCheckedBrands() {
+  return [...document.querySelectorAll('[data-brand]:checked')].map(el => el.value);
+}
+
+// ════════════════════════════════════════════════════
+//  DYNAMIC CHIP FILTERS
+// ════════════════════════════════════════════════════
+const CHIP_CONFIG = [
+  { key: 'obruba',   specKey: 'Typ obruby',       containerId: 'obruba-chips'   },
+  { key: 'material', specKey: 'Materiál rámečku', containerId: 'material-chips' },
+  { key: 'tvar',     specKey: 'Tvar rámečku',     containerId: 'tvar-chips'     },
+];
+
+// Base color order + German labels
+const COLOR_DE = [
+  ['černá',        'Schwarz'],
+  ['bílá',         'Weiß'],
+  ['šedá',         'Grau'],
+  ['stříbrná',     'Silber'],
+  ['zlatá',        'Gold'],
+  ['gun',          'Gunmetal'],
+  ['havana',       'Havana'],
+  ['hnědá',        'Braun'],
+  ['transparentní','Transparent'],
+  ['modrá',        'Blau'],
+  ['zelená',       'Grün'],
+  ['červená',      'Rot'],
+  ['růžová',       'Rosa'],
+  ['fialová',      'Violett'],
+  ['oranžová',     'Orange'],
+  ['žlutá',        'Gelb'],
+  ['béžová',       'Beige'],
+  ['karbonová',    'Carbon'],
+  ['crazy',        'Crazy'],
+];
+
+// Czech → German value translations for chip display
+const VALUE_DE = {
+  // Typ obruby
+  'bez obruby':   'Randlos',
+  'celoobruba':   'Vollrand',
+  'poloobruba':   'Halbrand',
+  // Tvar rámečku
+  'cat eye':      'Cat Eye',
+  'clubmaster':   'Clubmaster',
+  'kulaté':       'Rund',
+  'mask':         'Mask',
+  'obdélníkové':  'Rechteckig',
+  'oválný':       'Oval',
+  'pilot':        'Pilot',
+  'čtvercové':    'Eckig',
+  // Materiál rámečku
+  'acetát':       'Acetat',
+  'hliník':       'Aluminium',
+  'kov':          'Metall',
+  'memory titan': 'Memory-Titan',
+  'polykarbonát': 'Polykarbonat',
+  // Kolekce
+  'dámské':       'Damen',
+  'pánské':       'Herren',
+  'dětské':       'Kinder',
+  'unisex':       'Unisex',
+  'junior':       'Junior',
+};
+
+// Translate a compound colorName "černá / červená" → "Schwarz / Rot"
+function colorNameDE(czName) {
+  if (!czName) return czName;
+  const colorMap = new Map(COLOR_DE.map(([cz, de]) => [cz.toLowerCase(), de]));
+  return czName.split(/\s*\/\s*/).map(part => {
+    return colorMap.get(part.trim().toLowerCase()) || part.trim();
+  }).join(' / ');
+}
+
+function buildDynamicChips() {
+  for (const cfg of CHIP_CONFIG) {
+    const vals = [...new Set(
+      ALL_PRODUCTS
+        .map(p => ((p.specs || {})[cfg.specKey] || '').trim())
+        .filter(Boolean)
+    )].sort();
+    const container = document.getElementById(cfg.containerId);
+    if (!container) continue;
+    if (!vals.length) {
+      container.style.display = 'none';
+      const prev = container.previousElementSibling;
+      if (prev && prev.classList.contains('sect-sub')) prev.style.display = 'none';
+      continue;
+    }
+    container.innerHTML = vals.map(v => {
+      const label = VALUE_DE[v] || v;
+      return `<span class="chip" data-filter-key="${cfg.key}" data-filter-val="${esc(v)}"
+            onclick="toggleChipFilter('${cfg.key}','${esc(v)}',this)">${esc(label)}</span>`;
+    }).join('');
+  }
+
+  // Color chips — derived from variant colorNames (split by " / ")
+  const presentBaseColors = new Set();
+  for (const p of ALL_PRODUCTS) {
+    for (const v of (p.variants || [])) {
+      const parts = (v.colorName || '').split(/\s*\/\s*/);
+      for (const part of parts) {
+        const t = part.trim().toLowerCase();
+        if (t) presentBaseColors.add(t);
+      }
+    }
+  }
+  const farbeContainer = document.getElementById('farbe-chips');
+  if (farbeContainer) {
+    const chips = COLOR_DE.filter(([cz]) => presentBaseColors.has(cz));
+    if (chips.length) {
+      farbeContainer.innerHTML = chips.map(([cz, de]) =>
+        `<span class="chip" data-filter-key="farbe" data-filter-val="${esc(cz)}"
+              onclick="toggleChipFilter('farbe','${esc(cz)}',this)">${esc(de)}</span>`
+      ).join('');
+    } else {
+      farbeContainer.style.display = 'none';
+      const prev = farbeContainer.previousElementSibling;
+      if (prev && prev.classList.contains('sect-sub')) prev.style.display = 'none';
+    }
+  }
+}
+
+function toggleChipFilter(key, val, el) {
+  if (chipFilters[key].has(val)) {
+    chipFilters[key].delete(val);
+    el.classList.remove('active');
+  } else {
+    chipFilters[key].add(val);
+    el.classList.add('active');
+  }
+  rebuildList();
+}
+
+// ════════════════════════════════════════════════════
+//  FILTERING
+// ════════════════════════════════════════════════════
+function specVal(p, key) {
+  return ((p.specs || {})[key] || '').trim();
+}
+
+function filteredProducts() {
+  const search  = (document.getElementById('prod-search')?.value || '').toLowerCase().trim();
+  const brands  = getCheckedBrands();
+  const ewMin   = parseFloat(document.getElementById('ew-min')?.value) || null;
+  const ewMax   = parseFloat(document.getElementById('ew-max')?.value) || null;
+  const fFlex   = document.getElementById('f-flex')?.checked;
+  const fMulti  = document.getElementById('f-multi')?.checked;
+
+  return ALL_PRODUCTS.filter(p => {
+    const sp = p.specs || {};
+
+    // Brand
+    if (brands.length && !brands.includes(p.brand)) return false;
+
+    // Kollektion
+    if (activeKolekce) {
+      const k = (sp['Kolekce'] || '').toLowerCase();
+      if (!k.includes(activeKolekce)) return false;
+    }
+
+    // Text search
+    if (search) {
+      const hay = (p.brand + ' ' + p.modelName + ' ' + p.modelNum).toLowerCase();
+      if (!search.split(/\s+/).every(t => hay.includes(t))) return false;
+    }
+
+    // Chip-multi filters (spec-based)
+    const chipMap = {
+      obruba:   'Typ obruby',
+      material: 'Materiál rámečku',
+      tvar:     'Tvar rámečku',
+    };
+    for (const [key, specKey] of Object.entries(chipMap)) {
+      if (chipFilters[key].size) {
+        const val = specVal(p, specKey).toLowerCase();
+        if (![...chipFilters[key]].some(v => val.includes(v.toLowerCase()))) return false;
+      }
+    }
+
+    // Color filter (variant-based)
+    if (chipFilters.farbe.size) {
+      const variantColors = (p.variants || []).flatMap(v =>
+        (v.colorName || '').split(/\s*\/\s*/).map(s => s.trim().toLowerCase())
+      );
+      if (![...chipFilters.farbe].some(fc => variantColors.includes(fc))) return false;
+    }
+
+    // Glasbreite range
+    if (ewMin !== null || ewMax !== null) {
+      const raw = specVal(p, 'Šířka očnice');
+      const num = parseFloat(raw);
+      if (isNaN(num)) return false;
+      if (ewMin !== null && num < ewMin) return false;
+      if (ewMax !== null && num > ewMax) return false;
+    }
+
+    // Boolean filters (ANO = yes)
+    if (fFlex  && !/^ano$/i.test(specVal(p, 'Flex')))                      return false;
+    if (fMulti && !/^ano$/i.test(specVal(p, 'Vhodné pro multifokál')))      return false;
+
+    return true;
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  MODEL LIST
+// ════════════════════════════════════════════════════
+const MAX_DISPLAY = 80;
+
+function rebuildList() {
+  const list = document.getElementById('model-list');
+  const items = filteredProducts();
+  const show  = items.slice(0, MAX_DISPLAY);
+
+  if (!items.length) {
+    list.innerHTML = '<div class="no-models">Keine Produkte für diese Filter.</div>';
+    return;
+  }
+
+  list.innerHTML = show.map(p => {
+    const on    = selected.has(p.gm);
+    const thumb = (p.variants || [])[0]?.thumbImage;
+    const url   = thumb ? imgUrl(thumb) : null;
+    const kolekce  = (p.specs || {})['Kolekce'] || '';
+    const varCount = (p.variants || []).length;
+    const sub = [kolekce, varCount + (varCount === 1 ? ' barva' : varCount < 5 ? ' barvy' : ' barev')].filter(Boolean).join(' · ');
+    const dots = (p.variants || []).slice(0, 8).map(v =>
+      `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
+    ).join('');
+    const imgTag = url
+      ? `<img class="model-thumb" src="${url}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
+      : `<div class="model-thumb"></div>`;
+
+    return `<div class="model-item${on?' on':''}" data-gm="${p.gm}" onclick="toggleProd(${p.gm},this)">
+      ${imgTag}
+      <div class="model-item-info">
+        <div class="model-brand">${esc(p.brand)}</div>
+        <div class="model-name">${esc(p.modelName)}</div>
+        <div class="model-sub">${esc(sub)}</div>
+        <div class="var-dots">${dots}</div>
+      </div>
+      <div class="model-add">${on ? '✓' : '+'}</div>
+    </div>`;
+  }).join('');
+
+  if (items.length > MAX_DISPLAY) {
+    list.innerHTML += `<div class="more-label">… und ${items.length - MAX_DISPLAY} weitere · Suche verfeinern</div>`;
+  }
+  updateCount();
+}
+
+function toggleProd(gm, el) {
+  if (selected.has(gm)) {
+    selected.delete(gm);
+    el.classList.remove('on');
+    el.querySelector('.model-add').textContent = '+';
+  } else {
+    selected.add(gm);
+    el.classList.add('on');
+    el.querySelector('.model-add').textContent = '✓';
+    if (!productExtras.has(gm)) productExtras.set(gm, { price: '', desc: '' });
+  }
+  updateCount();
+  rebuildSelConfig();
+  refresh();
+}
+
+function updateCount() {
+  document.getElementById('sel-count').textContent = selected.size;
+  document.getElementById('preview-count').textContent = selected.size + ' Produkt' + (
+    selected.size === 1 ? '' : 'e'
+  );
+}
+
+function selectAll(on) {
+  filteredProducts().forEach(p => {
+    if (on) {
+      selected.add(p.gm);
+      if (!productExtras.has(p.gm)) productExtras.set(p.gm, { price: '', desc: '' });
+    } else {
+      selected.delete(p.gm);
+    }
+  });
+  rebuildList();
+  rebuildSelConfig();
+  refresh();
+}
+
+// ════════════════════════════════════════════════════
+//  SELECTED PRODUCTS CONFIG (cena + popis)
+// ════════════════════════════════════════════════════
+function rebuildSelConfig() {
+  const wrap = document.getElementById('sel-config-wrap');
+  const cont = document.getElementById('sel-config');
+  if (!wrap || !cont) return;
+
+  const selProds = ALL_PRODUCTS.filter(p => selected.has(p.gm));
+  if (!selProds.length) {
+    wrap.style.display = 'none';
+    cont.innerHTML = '';
+    return;
+  }
+
+  wrap.style.display = '';
+  cont.innerHTML = selProds.map(p => {
+    const ex = productExtras.get(p.gm) || { price: '', desc: '' };
+    return `<div class="sel-card">
+      <div class="sel-card-brand">${esc(p.brand)}</div>
+      <div class="sel-card-name">${esc(p.modelName)}</div>
+      <div class="row2">
+        <div>
+          <label class="field-label" style="margin-top:0">Cena (€)</label>
+          <input type="text" value="${esc(ex.price)}" placeholder="89,00 €"
+            oninput="setExtra(${p.gm},'price',this.value)">
+        </div>
+        <div>
+          <label class="field-label" style="margin-top:0">Popis</label>
+          <input type="text" value="${esc(ex.desc)}" placeholder="krátký popis"
+            oninput="setExtra(${p.gm},'desc',this.value)">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setExtra(gm, key, value) {
+  if (!productExtras.has(gm)) productExtras.set(gm, { price: '', desc: '' });
+  productExtras.get(gm)[key] = value;
+  refresh();
+}
+
+// ════════════════════════════════════════════════════
+//  NEWSLETTER HTML GENERATOR
+// ════════════════════════════════════════════════════
+function buildHTML() {
+  const kw          = document.getElementById('kw').value;
+  const jahr        = document.getElementById('jahr').value;
+  const firma       = document.getElementById('firma').value || 'BRILLENGROSSHANDEL';
+  const tagline     = document.getElementById('tagline').value;
+  const datum       = document.getElementById('datum').value;
+  const thema       = document.getElementById('thema').value;
+  const intro       = document.getElementById('intro').value.replace(/\n/g,'<br>');
+  const abschluss   = document.getElementById('abschluss').value.replace(/\n/g,'<br>');
+  const cenyText    = document.getElementById('ceny-text').value.replace(/\n/g,'<br>');
+  const dodaci      = document.getElementById('dodaci').value.replace(/\n/g,'<br>');
+  const ftrFirma    = document.getElementById('ftr-firma').value;
+  const ftrAdresse  = document.getElementById('ftr-adresse').value;
+  const ftrTel      = document.getElementById('ftr-tel').value;
+  const ftrFax      = document.getElementById('ftr-fax').value;
+  const ftrEmail    = document.getElementById('ftr-email').value;
+  const ftrWeb      = document.getElementById('ftr-web').value;
+
+  // Logo: BRILLEN + rest highlighted
+  const fu = firma.toUpperCase();
+  const split = 6;
+  const logoHTML = fu.length > split
+    ? `${esc(fu.slice(0,split))}<em>${esc(fu.slice(split))}</em>`
+    : `<em>${esc(fu)}</em>`;
+
+  const selProds = ALL_PRODUCTS.filter(p => selected.has(p.gm));
+  const byBrand = new Map();
+  selProds.forEach(p => {
+    if (!byBrand.has(p.brand)) byBrand.set(p.brand, []);
+    byBrand.get(p.brand).push(p);
+  });
+
+  const fbk = FALLBACK_IMG.replace(/'/g, "\\'");
+
+  const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
+    const modelSections = prods.map(p => {
+      const sp  = p.specs || {};
+      const typ = VALUE_DE[sp['Typ obruby'] || ''] || sp['Typ obruby'] || '';
+      const mat = VALUE_DE[sp['Materiál rámečku'] || sp['Materiál'] || ''] || sp['Materiál rámečku'] || sp['Materiál'] || '';
+      const oce = sp['Šířka očnice'] || '';
+      const nos = sp['Šířka nosníku'] || '';
+      const str = sp['Délka stranice [mm]'] || sp['Délka stranice'] || '';
+      const flex  = sp['Flex'] === 'ANO' ? ' · Flex' : '';
+      const multi = sp['Vhodné pro multifokál'] === 'ANO' ? ' · Multifokus' : '';
+      const kolekce = VALUE_DE[sp['Kolekce'] || ''] || sp['Kolekce'] || '';
+
+      const dimStr = [oce && nos ? oce+'□'+nos : '', str ? str+'mm' : ''].filter(Boolean).join(' / ');
+      const badge  = [kolekce, dimStr].filter(Boolean).join(' · ');
+      const desc   = [typ, mat].filter(Boolean).join(' · ') + flex + multi;
+
+      const extra = productExtras.get(p.gm) || {};
+      const priceHTML    = extra.price ? `<span class="mprice">${esc(extra.price)}</span>` : '';
+      const descCustHTML = extra.desc  ? `<div class="mdesc-cust">${esc(extra.desc)}</div>` : '';
+
+      // If color filter active, show only matching variants
+      const activeColors = chipFilters.farbe;
+      const visibleVariants = activeColors.size
+        ? (p.variants || []).filter(v => {
+            const parts = (v.colorName || '').split(/\s*\/\s*/).map(s => s.trim().toLowerCase());
+            return [...activeColors].some(fc => parts.includes(fc));
+          })
+        : (p.variants || []);
+
+      const varCells = visibleVariants.map(v => {
+        const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
+        const img  = vUrl
+          ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" onerror="this.onerror=null;this.src='${fbk}'">`
+          : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}">`;
+        return `<div class="vc">
+          ${img}
+          <div class="vb">
+            <div class="vcode">${esc(v.variantCode)}</div>
+            <div class="vfarbe">${esc(colorNameDE(v.colorName))}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div class="ms">
+        <div class="mrow">
+          <span class="mcode">${esc(p.modelName)}</span>
+          ${priceHTML}
+        </div>
+        ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
+        ${descCustHTML}
+        ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
+        <div class="vg">${varCells}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="ls">
+      <div class="lh"><span class="ln">${esc(brand)}</span></div>
+      ${modelSections}
+    </div>`;
+  }).join('');
+
+  const noContent = !selProds.length
+    ? `<div style="background:#fff;text-align:center;padding:60px;color:#94a3b8;font-size:16px;border-radius:10px;margin-top:16px;">
+        Keine Produkte ausgewählt.<br><em style="font-size:14px">Produkt im linken Bereich anklicken, um es hinzuzufügen.</em>
+       </div>` : '';
+
+  // Ceny & podmínky block (only if filled)
+  const cenyBlock = (cenyText || dodaci) ? `
+  <div class="bst">
+    ${cenyText ? `<div>${cenyText}</div>` : ''}
+    ${cenyText && dodaci ? '<br>' : ''}
+    ${dodaci ? `<div>${dodaci}</div>` : ''}
+  </div>` : '';
+
+  // Ordering / contact block
+  const bstBlock = `
+  <div class="bst">
+    ${ftrWeb   ? `<strong>Online bestellen:</strong> <a href="https://${esc(ftrWeb)}">${esc(ftrWeb)}</a><br>` : ''}
+    ${ftrEmail ? `<strong>E-Mail:</strong> <a href="mailto:${esc(ftrEmail)}">${esc(ftrEmail)}</a><br>` : ''}
+    ${ftrTel   ? `<strong>Tel:</strong> ${esc(ftrTel)}` : ''}${ftrTel && ftrFax ? ` &nbsp;·&nbsp; <strong>Fax:</strong> ${esc(ftrFax)}` : ''}
+  </div>`;
+
+  return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(ftrFirma || firma)} – KW ${esc(kw)} / ${esc(jahr)} | ${esc(thema)}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;color:#1e293b;padding:24px 0 40px}
+.wrap{max-width:700px;margin:0 auto}
+.hdr{background:#0f172a;padding:36px 40px 32px;text-align:center;border-radius:12px 12px 0 0}
+.logo{font-size:32px;font-weight:900;color:#fff;letter-spacing:5px;text-transform:uppercase}
+.logo em{color:#e87722;font-style:normal}
+.kwline{color:#94a3b8;font-size:14px;margin-top:8px;letter-spacing:2px;text-transform:uppercase}
+.kwline-datum{color:#64748b;font-size:13px;margin-top:3px;letter-spacing:1px}
+.thema-acc{display:block;width:40px;height:3px;background:#e87722;margin:20px auto 12px;border-radius:2px}
+.thema{font-size:25px;font-weight:800;color:#fff;letter-spacing:1.5px;text-transform:uppercase}
+.intro{background:#fff;padding:18px 40px;font-size:15px;color:#64748b;line-height:1.8;border-left:3px solid #e87722}
+.ls{background:#fff;margin-top:16px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
+.ln{font-size:25px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
+.ms{padding:20px 24px;border-bottom:1px solid #e2e8f0;}
+.ms:last-child{border-bottom:none;}
+.mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+.mcode{font-size:18px;font-weight:800;color:#0f172a}
+.mprice{background:#e87722;color:#fff;font-size:15px;font-weight:700;padding:3px 14px;border-radius:20px;display:inline-block}
+.gbadge{display:inline-block;background:#f1f5f9;color:#475569;font-size:13px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:'Courier New',monospace;margin-bottom:10px}
+.mdesc-cust{font-size:15px;color:#334155;font-weight:600;margin-bottom:10px;line-height:1.5}
+.mdesc{font-size:15px;color:#64748b;line-height:1.65;margin-bottom:18px}
+.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:680px){.vg{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:420px){.vg{grid-template-columns:1fr;}}
+.vc{text-align:center;}
+.vi{width:100%;height:auto;border-radius:8px;display:block;border:1px solid #e2e8f0;background:#f1f5f9;}
+.vb{margin-top:8px;padding:0 2px}
+.vcode{font-family:'Courier New',monospace;font-size:13px;font-weight:700;color:#475569}
+.vfarbe{font-size:14px;color:#64748b;margin:4px 0;line-height:1.4}
+.abs{background:#fff;margin-top:16px;padding:24px 40px;border-radius:10px;font-size:15px;color:#64748b;line-height:1.9;border-left:3px solid #e87722;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.abs strong{color:#334155}
+.bst{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 32px;margin-top:12px;font-size:14.5px;color:#475569;line-height:2.2}
+.bst a{color:#e87722;text-decoration:none;font-weight:600}
+.ftr{background:#0f172a;padding:28px 40px;text-align:center;border-radius:0 0 12px 12px;margin-top:16px}
+.ftr-brand{font-size:20px;font-weight:800;color:#e87722;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
+.ftr p{color:#94a3b8;font-size:14px;margin:5px 0;line-height:1.6}
+.ftr a{color:#e87722;text-decoration:none}
+.ftr-legal{margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;font-size:13px;color:#475569}
+@media(max-width:600px){
+  body{padding:8px 0 24px}
+  .wrap{width:100%}
+  .hdr{padding:24px 16px 20px;border-radius:6px 6px 0 0}
+  .logo{font-size:20px;letter-spacing:2px}
+  .thema{font-size:17px;letter-spacing:0.5px}
+  .intro{padding:14px 16px;font-size:14px}
+  .ls{margin-top:10px}
+  .lh{padding:12px 16px}
+  .ln{font-size:19px}
+  .ms{padding:14px 14px}
+  .mcode{font-size:15px}
+  .mprice{font-size:13px;padding:2px 10px}
+  .mdesc{font-size:13px}
+  .mdesc-cust{font-size:13px}
+  .abs{padding:16px 16px;font-size:14px}
+  .bst{padding:14px 16px;font-size:13px}
+  .ftr{padding:20px 16px}
+  .ftr-brand{font-size:16px}
+  .ftr p{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="logo">${logoHTML}</div>
+    <div class="kwline">${esc(tagline)}${tagline && kw ? ' · ' : ''}KW ${esc(kw)} / ${esc(jahr)}</div>
+    ${datum ? `<div class="kwline-datum">${esc(datum)}</div>` : ''}
+    <span class="thema-acc"></span>
+    <div class="thema">${esc(thema)}</div>
+  </div>
+
+  <div class="intro">${intro}</div>
+
+  ${sectHTML}${noContent}
+
+  <div class="abs">
+    ${abschluss}<br><br>
+    <strong>Herzlichst,<br>Das Team von ${esc(ftrFirma || firma)}</strong>
+  </div>
+
+  ${cenyBlock}
+
+  ${bstBlock}
+
+  <div class="ftr">
+    <div class="ftr-brand">${esc(ftrFirma)}</div>
+    ${ftrAdresse ? `<p>${esc(ftrAdresse)}</p>` : ''}
+    ${ftrTel ? `<p>Tel. ${esc(ftrTel)}${ftrFax ? ` · Fax ${esc(ftrFax)}` : ''}</p>` : ''}
+    ${ftrEmail ? `<p><a href="mailto:${esc(ftrEmail)}">${esc(ftrEmail)}</a></p>` : ''}
+    ${ftrWeb ? `<p><a href="https://${esc(ftrWeb)}">${esc(ftrWeb)}</a></p>` : ''}
+    <div class="ftr-legal">alle Preise zzgl. der gesetzlichen MwSt. · alle Artikel so lange Vorrat reicht.</div>
+  </div>
+
+</div>
+</body>
+</html>`;
+}
+
+// ════════════════════════════════════════════════════
+//  PREVIEW + DOWNLOAD
+// ════════════════════════════════════════════════════
+function refresh() {
+  document.getElementById('preview').srcdoc = buildHTML();
+}
+
+function downloadHTML() {
+  const kw   = document.getElementById('kw').value;
+  const jahr = document.getElementById('jahr').value;
+  const html = buildHTML();
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `newsletter_KW${kw}_${jahr}.html`;
+  document.body.appendChild(a); a.click(); a.remove();
+  showStatus(`newsletter_KW${kw}_${jahr}.html heruntergeladen!`);
+}
+
+function showStatus(msg) {
+  const s = document.getElementById('status');
+  s.textContent = '✓ ' + msg;
+  s.classList.add('show');
+  setTimeout(() => s.classList.remove('show'), 4000);
+}
+
+function resetAll() {
+  document.getElementById('firma').value      = 'BRILLENGROSSHANDEL';
+  document.getElementById('kw').value         = 33;
+  document.getElementById('jahr').value       = 2026;
+  document.getElementById('datum').value      = 'Aug 2026';
+  document.getElementById('tagline').value    = 'Rita Bischoff · Mühlacker';
+  document.getElementById('thema').value      = 'Kinder & Jugendliche';
+  document.getElementById('intro').value      = 'Liebe Augenoptiker:innen, liebe Freunde,\ndiese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.';
+  document.getElementById('abschluss').value  = 'Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!';
+  document.getElementById('ceny-text').value  = '';
+  document.getElementById('dodaci').value     = '';
+  document.getElementById('ftr-firma').value  = 'Brillengroßhandel';
+  document.getElementById('ftr-adresse').value = 'Rita Bischoff · Mühlacker';
+  document.getElementById('ftr-tel').value    = '+49 7041 815-664';
+  document.getElementById('ftr-fax').value    = '07041 815 667';
+  document.getElementById('ftr-email').value  = 'rb@brillengrosshandel.net';
+  document.getElementById('ftr-web').value    = 'www.brillengrosshandel.net';
+  selected.clear();
+  productExtras.clear();
+  if (ALL_PRODUCTS.length) {
+    document.querySelectorAll('[data-brand]').forEach(el => el.checked = true);
+    const si = document.getElementById('prod-search');
+    if (si) si.value = '';
+    activeKolekce = '';
+    document.querySelectorAll('#kolekce-chips .chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    // Reset chip-multi filters
+    for (const key of Object.keys(chipFilters)) chipFilters[key].clear();
+    document.querySelectorAll('.chip-multi .chip').forEach(c => c.classList.remove('active'));
+    // Reset range
+    const ewMin = document.getElementById('ew-min'); if (ewMin) ewMin.value = '';
+    const ewMax = document.getElementById('ew-max'); if (ewMax) ewMax.value = '';
+    // Reset bool
+    ['f-flex','f-multi'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.checked = false;
+    });
+    rebuildList();
+  }
+  rebuildSelConfig();
+  updateCount();
+  refresh();
+}
+
+// ════════════════════════════════════════════════════
+//  RESIZER (drag to resize sidebar)
+// ════════════════════════════════════════════════════
+function initResizer() {
+  const resizer = document.getElementById('resizer');
+  const toggleBtn = document.getElementById('resizer-toggle');
+  const sidebar = document.querySelector('.sidebar');
+  if (!resizer || !sidebar) return;
+
+  let dragging = false, startX = 0, startW = 0, lastW = 340;
+
+  function collapse() {
+    if (sidebar.classList.contains('collapsed')) {
+      sidebar.classList.remove('collapsed');
+      sidebar.style.width = lastW + 'px';
+      if (toggleBtn) toggleBtn.textContent = '◀';
+    } else {
+      lastW = sidebar.offsetWidth || 340;
+      sidebar.classList.add('collapsed');
+      sidebar.style.width = '';
+      if (toggleBtn) toggleBtn.textContent = '▶';
+    }
+  }
+
+  // Toggle button click
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', e => { e.stopPropagation(); collapse(); });
+  }
+
+  // Double-click resizer
+  resizer.addEventListener('dblclick', collapse);
+
+  function onStart(e) {
+    if (e.target === toggleBtn) return; // let toggle handle its click
+    if (sidebar.classList.contains('collapsed')) { collapse(); return; }
+    dragging = true;
+    startX = e.clientX ?? e.touches[0].clientX;
+    startW = sidebar.offsetWidth;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    // disable transition during drag
+    sidebar.style.transition = 'none';
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const x = e.clientX ?? e.touches?.[0]?.clientX;
+    if (x == null) return;
+    const newW = Math.max(220, Math.min(window.innerWidth * 0.7, startW + x - startX));
+    sidebar.style.width = newW + 'px';
+    lastW = newW;
+  }
+
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    sidebar.style.transition = ''; // re-enable transition
+  }
+
+  resizer.addEventListener('mousedown', onStart);
+  resizer.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: true });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
+// ════════════════════════════════════════════════════
+//  MOBILE TAB SWITCHING
+// ════════════════════════════════════════════════════
+function fixPreviewHeight() {
+  if (window.innerWidth > 768) return;
+  const frame = document.getElementById('preview');
+  const topbar = document.querySelector('.topbar');
+  const previewBar = document.querySelector('.preview-bar');
+  if (!frame || !topbar || !previewBar) return;
+  const used = topbar.offsetHeight + previewBar.offsetHeight + 28; // 28 = margins
+  frame.style.height = Math.max(300, window.innerHeight - used) + 'px';
+}
+
+function switchTab(tab) {
+  const main = document.querySelector('.main');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  if (tab === 'preview') {
+    main.classList.add('show-preview');
+    refresh();
+    requestAnimationFrame(fixPreviewHeight);
+  } else {
+    main.classList.remove('show-preview');
+  }
+}
+
+window.addEventListener('resize', fixPreviewHeight);
+
+// ════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => { init(); initResizer(); });
+</script>
+</body>
+</html>
