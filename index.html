@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -233,10 +233,10 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
     <div class="topbar-sub">Newsletter Builder · MI Optics</div>
   </div>
   <div class="topbar-spacer"></div>
-  <button class="btn btn-ghost" onclick="saveDraft()" title="Uložit rozpracované do prohlížeče">💾 Uložit</button>
-  <button class="btn btn-ghost" onclick="loadDraft()" title="Obnovit uložené">📂 Načíst</button>
-  <button class="btn btn-ghost" onclick="copyHTML()" title="Zkopírovat HTML kód do schránky">📋 Kopírovat</button>
-  <button class="btn btn-ghost" onclick="exportPDF()" title="Otevřít tiskový dialog pro PDF">🖨 PDF</button>
+  <button class="btn btn-ghost" onclick="saveDraft()" title="Entwurf im Browser speichern">💾 Speichern</button>
+  <button class="btn btn-ghost" onclick="loadDraft()" title="Gespeicherten Entwurf laden">📂 Laden</button>
+  <button class="btn btn-ghost" onclick="copyHTML()" title="HTML-Code in Zwischenablage kopieren">📋 Kopieren</button>
+  <button class="btn btn-ghost" onclick="exportPDF()" title="Druckdialog für PDF öffnen">🖨 PDF</button>
   <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
   <button class="btn btn-primary" onclick="downloadHTML()">⬇ HTML generieren</button>
 </div>
@@ -248,11 +248,11 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
     <!-- ① ZÁHLAVÍ -->
     <div class="sect">
       <div class="sect-toggle" id="tog-zahlaví" onclick="toggleSect('zahlaví')">
-        <div class="sect-title"><span class="sect-num">1</span>Záhlaví</div>
+        <div class="sect-title"><span class="sect-num">1</span>Kopfzeile</div>
         <span class="sect-caret" id="caret-zahlaví">▸</span>
       </div>
       <div id="body-zahlaví" style="display:none" class="sect-body">
-        <label class="field-label">Název firmy</label>
+        <label class="field-label">Firmenname</label>
         <input type="text" id="firma" value="BRILLENGROSSHANDEL" oninput="refresh()">
         <div class="row3" style="margin-top:9px">
           <div>
@@ -276,13 +276,13 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
     <!-- ② ÚVODNÍ TEXT -->
     <div class="sect">
       <div class="sect-toggle" id="tog-uvod" onclick="toggleSect('uvod')">
-        <div class="sect-title"><span class="sect-num">2</span>Úvodní text</div>
+        <div class="sect-title"><span class="sect-num">2</span>Einleitung</div>
         <span class="sect-caret" id="caret-uvod">▸</span>
       </div>
       <div id="body-uvod" style="display:none" class="sect-body">
-        <label class="field-label">Nadpis newsletteru</label>
+        <label class="field-label">Newsletter-Titel</label>
         <input type="text" id="thema" value="Kinder &amp; Jugendliche" oninput="refresh()">
-        <label class="field-label">Úvodní odstavec</label>
+        <label class="field-label">Einleitungstext</label>
         <textarea id="intro" rows="4" oninput="refresh()">Liebe Augenoptiker:innen, liebe Freunde,
 diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
       </div>
@@ -292,68 +292,68 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
     <div class="sect">
       <div class="sect-toggle open" id="tog-produkty" onclick="toggleSect('produkty')">
         <div class="sect-title">
-          <span class="sect-num">3</span>Produkty
+          <span class="sect-num">3</span>Produkte
           <span class="sect-badge" id="sel-count">0</span>
         </div>
         <span class="sect-caret" id="caret-produkty">▾</span>
       </div>
       <div id="body-produkty" class="sect-body">
 
-        <!-- Načtení dat -->
-        <div class="sect-sub">Načtení dat <span class="sect-badge" id="prod-count">—</span></div>
+        <!-- Daten laden -->
+        <div class="sect-sub">Daten laden <span class="sect-badge" id="prod-count">—</span></div>
         <div id="load-ui">
-          <div class="prod-status">Načítám products.json…</div>
+          <div class="prod-status">Lade products.json …</div>
         </div>
 
         <!-- Filtry -->
         <div id="filter-sect" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Hledat &amp; filtrovat</div>
+          <div class="sect-sub">Suchen &amp; filtern</div>
           <div class="search-wrap">
             <span class="search-icon">⌕</span>
-            <input type="text" id="prod-search" placeholder="Značka, model, číslo…" oninput="rebuildList()">
+            <input type="text" id="prod-search" placeholder="Marke, Modell, Nummer …" oninput="rebuildList()">
           </div>
           <div class="chip-row" id="kolekce-chips">
-            <span class="chip active" data-kolekce="">Vše</span>
-            <span class="chip" data-kolekce="dámské">Dámské</span>
-            <span class="chip" data-kolekce="pánské">Pánské</span>
-            <span class="chip" data-kolekce="dětské">Dětské</span>
-            <span class="chip" data-kolekce="dívčí">Dívčí</span>
-            <span class="chip" data-kolekce="chlapecké">Chlapecké</span>
+            <span class="chip active" data-kolekce="">Alle</span>
+            <span class="chip" data-kolekce="dámské">Damen</span>
+            <span class="chip" data-kolekce="pánské">Herren</span>
+            <span class="chip" data-kolekce="dětské">Kinder</span>
+            <span class="chip" data-kolekce="dívčí">Mädchen</span>
+            <span class="chip" data-kolekce="chlapecké">Jungen</span>
             <span class="chip" data-kolekce="unisex">Unisex</span>
             <span class="chip" data-kolekce="junior">Junior</span>
           </div>
-          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Značky</div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Marken</div>
           <div class="mini-btns">
-            <button class="mini-btn" onclick="toggleAllBrands(true)">Vše</button>
-            <button class="mini-btn" onclick="toggleAllBrands(false)">Žádné</button>
+            <button class="mini-btn" onclick="toggleAllBrands(true)">Alle</button>
+            <button class="mini-btn" onclick="toggleAllBrands(false)">Keine</button>
           </div>
           <div class="check-group" id="brand-cb"></div>
         </div>
 
-        <!-- Výběr produktů -->
+        <!-- Produkte auswählen -->
         <div id="model-sect" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Vybrat do newsletteru</div>
+          <div class="sect-sub">Für Newsletter auswählen</div>
           <div class="mini-btns">
-            <button class="mini-btn" onclick="selectAll(true)">Vše filtrované</button>
-            <button class="mini-btn" onclick="selectAll(false)">Odebrat vše</button>
+            <button class="mini-btn" onclick="selectAll(true)">Alle gefiltert</button>
+            <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
           </div>
           <div class="model-list" id="model-list">
-            <div class="no-models">Nejprve načtěte products.json.</div>
+            <div class="no-models">Bitte zuerst products.json laden.</div>
           </div>
         </div>
 
         <!-- Limit warning -->
         <div class="limit-warn" id="limit-warn">
-          ⚠ Více než 20 produktů — email může být příliš velký pro některé poštovní klienty.
+          ⚠ Mehr als 20 Produkte — E-Mail könnte für manche E-Mail-Clients zu groß sein.
         </div>
 
-        <!-- Cena, popis & badge vybraných produktů -->
+        <!-- Preis, Beschreibung & Badge der ausgewählten Produkte -->
         <div id="sel-config-wrap" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Pořadí, cena &amp; badge</div>
-          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;">Přetáhni kartu pro změnu pořadí.</div>
+          <div class="sect-sub">Reihenfolge, Preis &amp; Badge</div>
+          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;">Karten ziehen zum Umordnen.</div>
           <div id="sel-config"></div>
         </div>
 
@@ -363,15 +363,15 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
     <!-- ④ CENY & PODMÍNKY -->
     <div class="sect">
       <div class="sect-toggle" id="tog-ceny" onclick="toggleSect('ceny')">
-        <div class="sect-title"><span class="sect-num">4</span>Ceny &amp; podmínky</div>
+        <div class="sect-title"><span class="sect-num">4</span>Preise &amp; Konditionen</div>
         <span class="sect-caret" id="caret-ceny">▸</span>
       </div>
       <div id="body-ceny" style="display:none" class="sect-body">
-        <label class="field-label">Text o cenách / akci</label>
-        <textarea id="ceny-text" rows="2" placeholder="napr. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
-        <label class="field-label">Dodací podmínky</label>
-        <textarea id="dodaci" rows="2" placeholder="napr. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
-        <label class="field-label">Závěrečný text</label>
+        <label class="field-label">Preistext / Aktion</label>
+        <textarea id="ceny-text" rows="2" placeholder="z. B. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
+        <label class="field-label">Lieferbedingungen</label>
+        <textarea id="dodaci" rows="2" placeholder="z. B. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
+        <label class="field-label">Abschlusstext</label>
         <textarea id="abschluss" rows="3" oninput="refresh()">Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!</textarea>
       </div>
     </div>
@@ -379,13 +379,13 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
     <!-- ⑤ PATIČKA -->
     <div class="sect">
       <div class="sect-toggle" id="tog-pata" onclick="toggleSect('pata')">
-        <div class="sect-title"><span class="sect-num">5</span>Patička</div>
+        <div class="sect-title"><span class="sect-num">5</span>Fußzeile</div>
         <span class="sect-caret" id="caret-pata">▸</span>
       </div>
       <div id="body-pata" style="display:none" class="sect-body">
         <label class="field-label">Název firmy</label>
         <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
-        <label class="field-label">Adresa</label>
+        <label class="field-label">Adresse</label>
         <input type="text" id="ftr-adresse" value="Rita Bischoff · Mühlacker" oninput="refresh()">
         <div class="row2">
           <div>
@@ -407,16 +407,16 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
     <!-- ⑥ E-MAIL NASTAVENÍ -->
     <div class="sect">
       <div class="sect-toggle" id="tog-email" onclick="toggleSect('email')">
-        <div class="sect-title"><span class="sect-num">6</span>E-mail (předmět &amp; pretext)</div>
+        <div class="sect-title"><span class="sect-num">6</span>E-Mail (Betreff &amp; Vorschau)</div>
         <span class="sect-caret" id="caret-email">▸</span>
       </div>
       <div id="body-email" style="display:none" class="sect-body">
         <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;line-height:1.6;">
-          Viditelné v e-mailovém klientovi před otevřením zprávy.
+          Sichtbar im E-Mail-Client vor dem Öffnen der Nachricht.
         </div>
-        <label class="field-label">Předmět (Betreff)</label>
+        <label class="field-label">Betreff</label>
         <input type="text" id="email-subject" placeholder="Neue Kollektion KW 33 – Kinder & Jugendliche" oninput="refresh()">
-        <label class="field-label">Pretext (Vorschautext)</label>
+        <label class="field-label">Vorschautext</label>
         <input type="text" id="email-pretext" placeholder="Diese Woche 12 neue Modelle ab Lager verfügbar." oninput="refresh()">
         <div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:6px;font-size:10px;color:#64748b;line-height:1.7;">
           <strong>📬 Vorschau:</strong><br>
@@ -432,7 +432,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
   <div class="preview-pane">
     <div class="preview-bar">
       <strong>Vorschau</strong>
-      <span>· Echtzeit · <span id="preview-count">0 produktů</span></span>
+      <span>· Echtzeit · <span id="preview-count">0 Produkte</span></span>
     </div>
     <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
   </div>
@@ -536,10 +536,10 @@ function init() {
 function showFilePicker() {
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status" style="color:#f59e0b;margin-bottom:4px;">
-      Automatické načtení selhalo (typické pro Chrome).
+      Automatisches Laden fehlgeschlagen (typisch für Chrome).
     </div>
     <label class="file-btn-label" for="file-input">
-      📂 Vybrat products.json ze složky
+      📂 products.json aus Ordner auswählen
     </label>
     <input type="file" id="file-input" accept=".json" onchange="handleFileInput(this)">
   `;
@@ -560,8 +560,8 @@ function onProductsLoaded(data) {
   ALL_PRODUCTS = Array.isArray(data) ? data : [];
   document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
   document.getElementById('load-ui').innerHTML = `
-    <div class="prod-status">✓ Načteno <strong>${ALL_PRODUCTS.length}</strong> produktů</div>
-    <span class="reload-link" onclick="showFilePicker()">Načíst jiný soubor…</span>
+    <div class="prod-status">✓ Geladen: <strong>${ALL_PRODUCTS.length}</strong> Produkte</div>
+    <span class="reload-link" onclick="showFilePicker()">Andere Datei laden …</span>
   `;
   document.getElementById('filter-sect').style.display = '';
   document.getElementById('model-sect').style.display = '';
@@ -619,7 +619,7 @@ function rebuildList() {
   const show  = items.slice(0, MAX_DISPLAY);
 
   if (!items.length) {
-    list.innerHTML = '<div class="no-models">Žádné produkty pro tyto filtry.</div>';
+    list.innerHTML = '<div class="no-models">Keine Produkte für diese Filter.</div>';
     return;
   }
 
@@ -629,7 +629,7 @@ function rebuildList() {
     const url   = thumb ? imgUrl(thumb) : null;
     const kolekce  = (p.specs||{})['Kolekce']||'';
     const varCount = (p.variants||[]).length;
-    const sub = [kolekce, varCount+(varCount===1?' barva':varCount<5?' barvy':' barev')].filter(Boolean).join(' · ');
+    const sub = [kolekce, varCount+(varCount===1?' Farbe':varCount<5?' Farben':' Farben')].filter(Boolean).join(' · ');
     const dots = (p.variants||[]).slice(0,8).map(v =>
       `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
     ).join('');
@@ -650,7 +650,7 @@ function rebuildList() {
   }).join('');
 
   if (items.length > MAX_DISPLAY) {
-    list.innerHTML += `<div class="more-label">… a dalších ${items.length - MAX_DISPLAY} produktů · upřesněte hledání</div>`;
+    list.innerHTML += `<div class="more-label">… und weiteren ${items.length - MAX_DISPLAY} Produkten · Suche verfeinern</div>`;
   }
   updateCount();
 }
@@ -676,7 +676,7 @@ function toggleProd(gm, el) {
 function updateCount() {
   const n = selected.size;
   document.getElementById('sel-count').textContent = n;
-  document.getElementById('preview-count').textContent = n + ' produkt' + (n===1?'':n<5?'y':'ů');
+  document.getElementById('preview-count').textContent = n + ' Produkt' + (n!==1?'e':'');
   const warn = document.getElementById('limit-warn');
   if (warn) warn.classList.toggle('show', n > LIMIT_WARN);
 }
@@ -735,12 +735,12 @@ function rebuildSelConfig() {
       </div>
       <div class="row2" style="margin-top:6px">
         <div>
-          <label class="field-label" style="margin-top:0">Cena (€)</label>
+          <label class="field-label" style="margin-top:0">Preis (€)</label>
           <input type="text" value="${esc(ex.price)}" placeholder="89,00 €" oninput="setExtra(${p.gm},'price',this.value)">
         </div>
         <div>
-          <label class="field-label" style="margin-top:0">Popis</label>
-          <input type="text" value="${esc(ex.desc)}" placeholder="krátký popis" oninput="setExtra(${p.gm},'desc',this.value)">
+          <label class="field-label" style="margin-top:0">Beschreibung</label>
+          <input type="text" value="${esc(ex.desc)}" placeholder="Kurzbeschreibung" oninput="setExtra(${p.gm},'desc',this.value)">
         </div>
       </div>
     </div>`;
@@ -1024,15 +1024,15 @@ function downloadHTML() {
   a.href = URL.createObjectURL(blob);
   a.download = `newsletter_KW${kw}_${jahr}.html`;
   document.body.appendChild(a); a.click(); a.remove();
-  showStatus(`newsletter_KW${kw}_${jahr}.html stažen!`);
+  showStatus(`newsletter_KW${kw}_${jahr}.html heruntergeladen!`);
 }
 
 function copyHTML() {
   const html = buildHTML();
   navigator.clipboard.writeText(html).then(() => {
-    showStatus('HTML zkopírováno do schránky!');
+    showStatus('HTML in Zwischenablage kopiert!');
   }).catch(() => {
-    showStatus('Kopírování selhalo — zkuste stáhnout soubor.');
+    showStatus('Kopieren fehlgeschlagen — bitte Datei herunterladen.');
   });
 }
 
@@ -1040,9 +1040,9 @@ function exportPDF() {
   const frame = document.getElementById('preview');
   try {
     frame.contentWindow.print();
-    showStatus('Otevřen tiskový dialog — zvolte "Uložit jako PDF".');
+    showStatus('Druckdialog geöffnet — bitte "Als PDF speichern" wählen.');
   } catch(e) {
-    showStatus('PDF: Otevřete HTML soubor v prohlížeči a použijte Ctrl+P.');
+    showStatus('PDF: HTML-Datei im Browser öffnen und Strg+P drücken.');
   }
 }
 
@@ -1069,16 +1069,16 @@ function saveDraft() {
   };
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    showStatus(`Draft uložen (${selectedOrder.length} produktů) · ${new Date().toLocaleTimeString('cs-CZ')}`);
+    showStatus(`Entwurf gespeichert (${selectedOrder.length} Produkte) · ${new Date().toLocaleTimeString('de-DE')}`);
   } catch(e) {
-    showStatus('Uložení selhalo — localStorage není dostupný.');
+    showStatus('Speichern fehlgeschlagen — localStorage nicht verfügbar.');
   }
 }
 
 function loadDraft() {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) { showStatus('Žádný uložený draft nenalezen.'); return; }
+    if (!raw) { showStatus('Kein gespeicherter Entwurf gefunden.'); return; }
     const draft = JSON.parse(raw);
 
     // Restore fields
@@ -1109,9 +1109,9 @@ function loadDraft() {
     refresh();
 
     const d = new Date(draft.savedAt);
-    showStatus(`Draft načten (${selectedOrder.length} produktů) · uložen ${d.toLocaleString('cs-CZ')}`);
+    showStatus(`Entwurf geladen (${selectedOrder.length} Produkte) · gespeichert ${d.toLocaleString('de-DE')}`);
   } catch(e) {
-    showStatus('Načtení draftu selhalo.');
+    showStatus('Entwurf konnte nicht geladen werden.');
   }
 }
 
