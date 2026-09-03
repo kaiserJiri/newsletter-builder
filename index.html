@@ -224,7 +224,9 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .status.show { display: flex; }
 
 /* ─── DARK MODE ──────────────────────────────────────── */
-body.dark { --bg: #0f172a; --border: #334155; --mid: #94a3b8; --dark: #e2e8f0; --muted: #94a3b8; color: #e2e8f0; }
+body.dark { --bg: #0f172a; --border: #334155; --mid: #94a3b8; --muted: #94a3b8; color: #e2e8f0; }
+/* topbar uses var(--dark) as background — keep it dark in dark mode too */
+body.dark .topbar { background: #0f172a; }
 body.dark .sidebar { background: #1e293b; }
 body.dark .sect { border-color: #334155; }
 body.dark .sect-toggle { color: #e2e8f0; }
@@ -247,6 +249,7 @@ body.dark .chip:hover { border-color: var(--acc); color: var(--acc); }
 body.dark .chip.active { background: var(--acc); color: white; border-color: var(--acc); }
 body.dark .sel-card { background: #0f172a; border-color: #334155; }
 body.dark .sel-card-name { color: #e2e8f0 !important; }
+body.dark .sect-toggle { color: #e2e8f0; }
 body.dark .sel-card-brand { color: var(--acc) !important; }
 body.dark .drag-handle { color: #475569; }
 body.dark .badge-btn { background: #0f172a; color: #94a3b8; border-color: #334155; }
