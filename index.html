@@ -436,7 +436,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
         <span class="sect-caret" id="caret-pata">▸</span>
       </div>
       <div id="body-pata" style="display:none" class="sect-body">
-        <label class="field-label">Název firmy</label>
+        <label class="field-label">Firmenname</label>
         <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
         <label class="field-label">Adresse</label>
         <input type="text" id="ftr-adresse" value="Rita Bischoff · Mühlacker" oninput="refresh()">
@@ -680,9 +680,11 @@ function rebuildList() {
     const on    = selected.has(p.gm);
     const thumb = (p.variants||[])[0]?.thumbImage;
     const url   = thumb ? imgUrl(thumb) : null;
-    const kolekce  = (p.specs||{})['Kolekce']||'';
+    const kolekceRaw = (p.specs||{})['Kolekce']||'';
+    const kolekceDE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
+    const kolekce = kolekceDE[kolekceRaw.toLowerCase()]||kolekceRaw;
     const varCount = (p.variants||[]).length;
-    const sub = [kolekce, varCount+(varCount===1?' Farbe':varCount<5?' Farben':' Farben')].filter(Boolean).join(' · ');
+    const sub = [kolekce, varCount+(varCount===1?' Farbe':' Farben')].filter(Boolean).join(' · ');
     const dots = (p.variants||[]).slice(0,8).map(v =>
       `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
     ).join('');
