@@ -85,7 +85,13 @@ body {
 .sect-toggle.open .sect-num { background: var(--acc); color: white; }
 .sect-caret { font-size: 10px; color: #cbd5e1; transition: transform 0.2s; }
 .sect-badge { background: var(--acc); color: white; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
-.sect-body { padding: 0 16px 14px; }
+@keyframes nl-fade { from{opacity:0} to{opacity:1} }
+@keyframes nl-up { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+.sect-body { padding: 0 16px 14px; animation: nl-fade .18s ease; }
+.model-item { animation: nl-up .15s ease both; }
+.model-item:nth-child(2){animation-delay:.04s} .model-item:nth-child(3){animation-delay:.08s}
+.model-item:nth-child(4){animation-delay:.12s} .model-item:nth-child(5){animation-delay:.16s}
+.model-item:nth-child(6){animation-delay:.2s}
 .sect-sub {
   font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
   text-transform: uppercase; color: #94a3b8;
