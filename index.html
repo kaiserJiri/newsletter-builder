@@ -247,7 +247,7 @@ body.dark .preview-pane { background: #1e293b; }
 body.dark .preview-bar { background: #0f172a; border-color: #334155; color: #94a3b8; }
 body.dark .preview-bar strong { color: #cbd5e1; }
 /* iframe gets margin so dark bg shows around it — newsletter itself stays white (email preview) */
-body.dark .preview-frame { margin: 0 10px 10px; width: calc(100% - 20px); border-radius: 8px; box-shadow: 0 4px 32px rgba(0,0,0,.5); }
+body.dark .preview-frame { margin: 0; width: 100%; border-radius: 0; box-shadow: none; }
 body.dark input[type=text], body.dark input[type=number], body.dark textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
 body.dark input[type=text]::placeholder, body.dark textarea::placeholder { color: #475569 !important; }
 body.dark .chip { background: #0f172a; color: #94a3b8; border-color: #334155; }
@@ -280,6 +280,25 @@ body.dark .more-label { color: #64748b; }
 body.dark .search-icon { color: #64748b; }
 body.dark .btn-ghost { color: #94a3b8 !important; border-color: #334155 !important; }
 body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !important; }
+/* ─── MOBILE ─────────────────────────────────────────── */
+#mob-toggle{display:none;}
+@media(max-width:768px){
+  .btn-label{display:none;}
+  html,body{height:auto!important;overflow:auto!important;}
+  .topbar{padding:6px 10px;gap:4px;height:auto;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+  .topbar-logo,.topbar-sub,.topbar-spacer{display:none!important;}
+  .btn{padding:6px 9px;font-size:11px;white-space:nowrap;flex-shrink:0;}
+  #mob-toggle{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;}
+  .main{display:flex;flex-direction:column;height:auto!important;overflow:visible!important;}
+  body:not([data-mob-view="preview"]) .preview-pane{display:none!important;}
+  body:not([data-mob-view="preview"]) .sidebar{width:100vw!important;min-width:0!important;max-width:100vw!important;border-right:none!important;overflow-y:auto!important;flex:1 1 auto!important;height:auto!important;}
+  body[data-mob-view="preview"] .sidebar{display:none!important;}
+  body[data-mob-view="preview"] .preview-pane{display:block!important;width:100vw!important;}
+  body[data-mob-view="preview"] .preview-frame{display:block!important;width:100%!important;height:calc(100vh - 78px)!important;}
+  input,textarea,select{max-width:100%!important;width:100%!important;box-sizing:border-box!important;}
+  .sect-body{padding:0 12px 12px;}
+  .model-list{max-height:60vh!important;}
+}
 </style>
 </head>
 <body>
@@ -503,29 +522,28 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
 function isMobile(){return window.innerWidth<=768;}
 function initMobile(){
   if(!isMobile())return;
-  const sidebar=document.querySelector('.sidebar');
-  const preview=document.querySelector('.preview-pane');
-  const main=document.querySelector('.main');
-  const body=document.body;
-  body.style.height='auto';body.style.overflow='auto';
-  if(main){main.style.overflow='visible';main.style.height='auto';main.style.flexDirection='column';}
-  if(sidebar){sidebar.style.cssText='width:100vw;min-width:0;max-width:100vw;border-right:none;overflow-y:auto;flex:none;display:block;';}
-  if(preview){preview.style.display='none';}
+  document.documentElement.style.cssText='height:auto;overflow:auto;';
+  document.body.style.cssText+='height:auto;overflow:auto;';
+  document.body.removeAttribute('data-mob-view');
 }
 function toggleMobView(){
   if(!isMobile())return;
   const btn=document.getElementById('mob-toggle');
-  const sidebar=document.querySelector('.sidebar');
-  const preview=document.querySelector('.preview-pane');
-  const showingPreview=preview&&preview.style.display!=='none';
-  if(showingPreview){
-    if(preview)preview.style.display='none';
-    if(sidebar)sidebar.style.display='block';
+  const isPreview=document.body.getAttribute('data-mob-view')==='preview';
+  if(isPreview){
+    document.body.removeAttribute('data-mob-view');
     if(btn)btn.textContent='👁 Vorschau';
   } else {
-    if(sidebar)sidebar.style.display='none';
-    if(preview){preview.style.cssText='display:flex;flex-direction:column;width:100vw;min-width:0;flex:1 1 auto;height:calc(100vh - 52px);';}
+    document.body.setAttribute('data-mob-view','preview');
     if(btn)btn.textContent='✏️ Editor';
+    setTimeout(()=>{
+      const topbar=document.querySelector('.topbar');
+      const previewBar=document.querySelector('.preview-bar');
+      const frame=document.getElementById('preview');
+      if(topbar&&previewBar&&frame){
+        frame.style.height=(window.innerHeight-topbar.offsetHeight-previewBar.offsetHeight)+'px';
+      }
+    },50);
   }
 }
 document.addEventListener('DOMContentLoaded',initMobile);
@@ -1023,7 +1041,7 @@ ${subject ? `<meta name="subject" content="${esc(subject)}">` : ''}
 <title>${subject ? esc(subject) : `${esc(ftrFirma||firma)} – KW ${esc(kw)} / ${esc(jahr)} | ${esc(thema)}`}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;color:#1e293b;padding:24px 0 40px}
+body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;color:#1e293b;padding:24px 0 0}
 .wrap{max-width:700px;margin:0 auto}
 .hdr{background:#0f172a;padding:36px 40px 32px;text-align:center;border-radius:12px 12px 0 0}
 .logo{font-size:28px;font-weight:900;color:#fff;letter-spacing:5px;text-transform:uppercase}
@@ -1053,21 +1071,18 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 @media(max-width:768px){
   .mob-hide{display:none!important;}
   .btn-label{display:none;}
-  .topbar{flex-wrap:wrap;height:auto!important;padding:8px 10px;gap:6px;}
-  .topbar-logo{font-size:13px;}
-  .topbar-spacer{display:none;}
-  .btn{padding:6px 10px;font-size:12px;}
+  .topbar{padding:8px 10px;gap:6px;height:auto;}
+  .topbar-logo,.topbar-sub,.topbar-spacer{display:none!important;}
+  .btn{padding:6px 9px;font-size:11px;}
   #mob-toggle{display:inline-flex;align-items:center;gap:4px;}
   html,body{height:auto!important;overflow:auto!important;}
-  .main{overflow:hidden!important;}
   /* editor mode (default) */
+  .main{display:flex;flex-direction:column;height:auto;overflow:visible;}
   body:not([data-mob-view="preview"]) .preview-pane{display:none!important;}
-  body:not([data-mob-view="preview"]) .sidebar{width:100vw!important;min-width:0!important;max-width:100vw!important;border-right:none!important;overflow-y:auto!important;flex:1 1 auto!important;height:calc(100vh - 52px)!important;}
+  body:not([data-mob-view="preview"]) .sidebar{width:100vw!important;min-width:0!important;max-width:100vw!important;border-right:none!important;overflow-y:visible!important;flex:1 1 auto!important;height:auto!important;}
   /* preview mode */
   body[data-mob-view="preview"] .sidebar{display:none!important;}
-  body[data-mob-view="preview"] .preview-pane{display:flex!important;width:100vw!important;flex:1 1 auto!important;height:calc(100vh - 52px)!important;}
-  .topbar-sub{display:none;}
-  .btn{padding:6px 9px;font-size:11px;}
+  body[data-mob-view="preview"] .preview-pane{display:flex!important;flex-direction:column!important;width:100vw!important;flex:1 1 auto!important;min-height:100vh!important;}
   input,textarea,select{max-width:100%!important;width:100%!important;box-sizing:border-box!important;}
   .sect-body{padding:0 12px 12px;}
   .model-list{max-height:60vh!important;}
