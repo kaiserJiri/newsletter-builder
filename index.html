@@ -1016,6 +1016,19 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .vg{display:table;width:calc(100% + 20px);border-collapse:separate;border-spacing:10px 0;margin:0 -10px}
 .vc{display:table-cell;width:33.33%;vertical-align:top;text-align:center}
 @media(max-width:500px){.vg{display:block;width:100%;margin:0}.vc{display:block;width:100%;margin-bottom:16px}.vg tr{display:block}}
+
+@media(max-width:768px){
+  html,body{height:auto;overflow:auto;}
+  .main{flex-direction:column;overflow:visible;height:auto;}
+  .sidebar{width:100%!important;min-width:0!important;border-right:none;overflow-y:visible;flex-shrink:0;}
+  .preview-pane{display:none!important;}
+  .topbar{padding:0 12px;gap:6px;}
+  .topbar-sub{display:none;}
+  .btn{padding:6px 10px;font-size:11px;}
+  input,textarea,select{max-width:100%!important;width:100%!important;box-sizing:border-box;}
+  .sect-body{padding:0 12px 12px;}
+  .field-label{font-size:12px;}
+}
 .vi{width:100%;height:105px;object-fit:cover;border-radius:8px;display:block;border:1px solid #e2e8f0;background:#f1f5f9}
 .vb{margin-top:8px;padding:0 2px}
 .vcode{font-family:'Courier New',monospace;font-size:11px;font-weight:700;color:#475569}
