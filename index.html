@@ -402,7 +402,11 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
             <span class="chip" data-kolekce="unisex">Unisex</span>
             <span class="chip" data-kolekce="junior">Junior</span>
           </div>
-          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Marken</div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Tvar obrouček</div>
+          <div class="chip-row" id="tvar-chips"></div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Materiál</div>
+          <div class="chip-row" id="mat-chips"></div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Marken</div>
           <div class="mini-btns">
             <button class="mini-btn" onclick="toggleAllBrands(true)">Alle</button>
             <button class="mini-btn" onclick="toggleAllBrands(false)">Keine</button>
@@ -674,6 +678,43 @@ function onProductsLoaded(data) {
   document.getElementById('filter-sect').style.display = '';
   document.getElementById('model-sect').style.display = '';
   buildBrandCheckboxes();
+  buildTvarChips();
+  buildMatChips();
+  rebuildList();
+}
+
+// ════════════════════════════════════════════════════
+//  TVAR + MATERIAL CHIPS
+// ════════════════════════════════════════════════════
+let activeTvar = '';
+let activeMat  = '';
+
+function buildTvarChips() {
+  const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
+  const el = document.getElementById('tvar-chips');
+  if (!el) return;
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v,v])].map(([val,lbl])=>`
+    <span class="chip${activeTvar===val?' active':''}" data-tvar="${esc(val)}" onclick="setTvar('${esc(val)}')">${esc(lbl)}</span>`).join('');
+}
+function setTvar(val) {
+  activeTvar = val;
+  buildTvarChips();
+  rebuildList();
+}
+
+function buildMatChips() {
+  const vals = [...new Set(ALL_PRODUCTS.map(p => {
+    const sp = p.specs||{};
+    return (sp['Materiál rámečku']||sp['Materiál']||'');
+  }).filter(Boolean))].sort();
+  const el = document.getElementById('mat-chips');
+  if (!el) return;
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v,v])].map(([val,lbl])=>`
+    <span class="chip${activeMat===val?' active':''}" data-mat="${esc(val)}" onclick="setMat('${esc(val)}')">${esc(lbl)}</span>`).join('');
+}
+function setMat(val) {
+  activeMat = val;
+  buildMatChips();
   rebuildList();
 }
 
@@ -707,6 +748,15 @@ function filteredProducts() {
     if (activeKolekce) {
       const k = ((p.specs||{})['Kolekce']||'').toLowerCase();
       if (!k.includes(activeKolekce)) return false;
+    }
+    if (activeTvar) {
+      const t = ((p.specs||{})['Typ obruby']||'');
+      if (t !== activeTvar) return false;
+    }
+    if (activeMat) {
+      const sp = p.specs||{};
+      const m = sp['Materiál rámečku']||sp['Materiál']||'';
+      if (m !== activeMat) return false;
     }
     if (search) {
       const hay = (p.brand+' '+p.modelName+' '+p.modelNum).toLowerCase();
@@ -1054,8 +1104,8 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .ls{background:#fff;margin-top:16px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
 .ln{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
-.mc-grid{display:flex;flex-wrap:wrap;}
-.mc{flex:1 1 300px;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;border-right:1px solid #f1f5f9;box-sizing:border-box;}
+.mc-grid{}
+.mc{padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;box-sizing:border-box;}
 .mc:last-child{border-bottom:none}
 .mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
 .mcode{font-size:16px;font-weight:800;color:#0f172a}
