@@ -402,10 +402,15 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
             <span class="chip" data-kolekce="unisex">Unisex</span>
             <span class="chip" data-kolekce="junior">Junior</span>
           </div>
-          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Tvar obrouček</div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Rahmenform</div>
           <div class="chip-row" id="tvar-chips"></div>
-          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Materiál</div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Material</div>
           <div class="chip-row" id="mat-chips"></div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Eigenschaften</div>
+          <div class="chip-row">
+            <span class="chip" id="chip-flex" onclick="toggleFlex()">Flex</span>
+            <span class="chip" id="chip-multi" onclick="toggleMulti()">Multifokál</span>
+          </div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Marken</div>
           <div class="mini-btns">
             <button class="mini-btn" onclick="toggleAllBrands(true)">Alle</button>
@@ -686,8 +691,10 @@ function onProductsLoaded(data) {
 // ════════════════════════════════════════════════════
 //  TVAR + MATERIAL CHIPS
 // ════════════════════════════════════════════════════
-let activeTvar = '';
-let activeMat  = '';
+let activeTvar  = '';
+let activeMat   = '';
+let filterFlex  = false;
+let filterMulti = false;
 
 function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
@@ -715,6 +722,16 @@ function buildMatChips() {
 function setMat(val) {
   activeMat = val;
   buildMatChips();
+  rebuildList();
+}
+function toggleFlex() {
+  filterFlex = !filterFlex;
+  document.getElementById('chip-flex').classList.toggle('active', filterFlex);
+  rebuildList();
+}
+function toggleMulti() {
+  filterMulti = !filterMulti;
+  document.getElementById('chip-multi').classList.toggle('active', filterMulti);
   rebuildList();
 }
 
@@ -758,6 +775,8 @@ function filteredProducts() {
       const m = sp['Materiál rámečku']||sp['Materiál']||'';
       if (m !== activeMat) return false;
     }
+    if (filterFlex  && (p.specs||{})['Flex'] !== 'ANO') return false;
+    if (filterMulti && (p.specs||{})['Vhodné pro multifokál'] !== 'ANO') return false;
     if (search) {
       const hay = (p.brand+' '+p.modelName+' '+p.modelNum).toLowerCase();
       if (!search.split(/\s+/).every(t => hay.includes(t))) return false;
