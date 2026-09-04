@@ -839,9 +839,10 @@ function rebuildList() {
     const kolekceRaw = (p.specs||{})['Kolekce']||'';
     const kolekceDE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
     const kolekce = kolekceDE[kolekceRaw.toLowerCase()]||kolekceRaw;
-    const varCount = (p.variants||[]).length;
+    const filteredVars = activeColor ? (p.variants||[]).filter(v=>colorFamily(v.colorName)===activeColor) : (p.variants||[]);
+    const varCount = filteredVars.length;
     const sub = [kolekce, varCount+(varCount===1?' Farbe':' Farben')].filter(Boolean).join(' · ');
-    const dots = (p.variants||[]).slice(0,8).map(v =>
+    const dots = filteredVars.slice(0,8).map(v =>
       `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
     ).join('');
     const imgTag = url
@@ -1080,7 +1081,7 @@ function buildHTML() {
         badgeHTML = `<span style="display:inline-block;background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;vertical-align:middle;">SALE</span>`;
       }
 
-      const vars = p.variants || [];
+      const vars = (p.variants||[]).filter(v => !activeColor || colorFamily(v.colorName)===activeColor);
       const vcCards = vars.map(v => {
         const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
         const img  = vUrl
