@@ -1029,14 +1029,20 @@ function buildHTML() {
   const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
     const prodCards = prods.map(p => {
       const sp  = p.specs || {};
-      const typ = sp['Typ obruby'] || '';
-      const mat = sp['Materiál rámečku'] || sp['Materiál'] || '';
+      const KODE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
+      const COLOR_DE = {'černá':'schwarz','bílá':'weiß','hnědá':'braun','zlatá':'gold','stříbrná':'silber','modrá':'blau','zelená':'grün','červená':'rot','béžová':'beige','šedá':'grau','šedivá':'grau','růžová':'rosa','fialová':'lila','oranžová':'orange','žlutá':'gelb','transparentní':'transparent','nude':'nude','gunmetal':'gunmetal'};
+      const transColor = c => { const l=c.toLowerCase(); return COLOR_DE[l]||(l.split(/[-\/\s]+/).map(w=>COLOR_DE[w]||w).join('-')); };
+      const typRaw = sp['Typ obruby'] || '';
+      const matRaw = sp['Materiál rámečku'] || sp['Materiál'] || '';
+      const typ = TVAR_DE[typRaw.toLowerCase()]||TVAR_DE[typRaw]||typRaw;
+      const mat = MAT_DE[matRaw.toLowerCase()]||MAT_DE[matRaw]||matRaw;
       const oce = sp['Šířka očnice'] || '';
       const nos = sp['Šířka nosníku'] || '';
       const str = sp['Délka stranice [mm]'] || sp['Délka stranice'] || '';
       const flex  = sp['Flex']==='ANO' ? ' · Flex' : '';
-      const multi = sp['Vhodné pro multifokál']==='ANO' ? ' · Multifokál' : '';
-      const kolekce = sp['Kolekce'] || '';
+      const multi = sp['Vhodné pro multifokál']==='ANO' ? ' · Multifokal' : '';
+      const kolekceRaw = sp['Kolekce'] || '';
+      const kolekce = KODE[kolekceRaw.toLowerCase()]||KODE[kolekceRaw]||kolekceRaw;
       const dimStr = [oce&&nos ? oce+'□'+nos : '', str ? str+'mm' : ''].filter(Boolean).join(' / ');
       const badge  = [kolekce, dimStr].filter(Boolean).join(' · ');
       const desc   = [typ, mat].filter(Boolean).join(' · ') + flex + multi;
@@ -1064,7 +1070,7 @@ function buildHTML() {
           return `<td class="vc">${img}
             <div class="vb">
               <div class="vcode">${esc(v.variantCode)}</div>
-              <div class="vfarbe">${esc(v.colorName)}</div>
+              <div class="vfarbe">${esc(transColor(v.colorName||''))}</div>
             </div>
           </td>`;
         }).join('');
