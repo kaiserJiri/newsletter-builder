@@ -409,7 +409,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Eigenschaften</div>
           <div class="chip-row">
             <span class="chip" id="chip-flex" onclick="toggleFlex()">Flex</span>
-            <span class="chip" id="chip-multi" onclick="toggleMulti()">Multifokál</span>
+            <span class="chip" id="chip-multi" onclick="toggleMulti()">Multifokal</span>
           </div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Marken</div>
           <div class="mini-btns">
@@ -696,12 +696,23 @@ let activeMat   = '';
 let filterFlex  = false;
 let filterMulti = false;
 
+const TVAR_DE = {
+  'bez obruby':'Randlos','bezrámečkové':'Randlos','bezrámečkové závěsné':'Randlos (hängend)',
+  'celoobruba':'Vollrand','plný rámeček':'Vollrand',
+  'poloobruba':'Halbrand','poloobroučky':'Halbrand'
+};
+const MAT_DE = {
+  'acetát':'Acetat','hliník':'Aluminium','kov':'Metall',
+  'polykarbonát':'Polykarbonat','titan':'Titan','memory titan':'Memory-Titan',
+  'nerez':'Edelstahl','nylon':'Nylon','ultem':'Ultem'
+};
+
 function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
   const el = document.getElementById('tvar-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v,v])].map(([val,lbl])=>`
-    <span class="chip${activeTvar===val?' active':''}" data-tvar="${esc(val)}" onclick="setTvar('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])].map(([val,lbl])=>`
+    <span class="chip${activeTvar===val?' active':''}" onclick="setTvar('${esc(val)}')">${esc(lbl)}</span>`).join('');
 }
 function setTvar(val) {
   activeTvar = val;
@@ -716,8 +727,8 @@ function buildMatChips() {
   }).filter(Boolean))].sort();
   const el = document.getElementById('mat-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v,v])].map(([val,lbl])=>`
-    <span class="chip${activeMat===val?' active':''}" data-mat="${esc(val)}" onclick="setMat('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])].map(([val,lbl])=>`
+    <span class="chip${activeMat===val?' active':''}" onclick="setMat('${esc(val)}')">${esc(lbl)}</span>`).join('');
 }
 function setMat(val) {
   activeMat = val;
