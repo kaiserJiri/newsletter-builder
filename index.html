@@ -1005,7 +1005,7 @@ function buildHTML() {
 
     return `<div class="ls">
       <div class="lh"><span class="ln">${esc(brand)}</span></div>
-      ${prodCards}
+      <div class="mc-grid">${prodCards}</div>
     </div>`;
   }).join('');
 
@@ -1054,7 +1054,8 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .ls{background:#fff;margin-top:16px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
 .ln{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
-.mc{padding:24px 32px 20px;border-bottom:1px solid #f1f5f9}
+.mc-grid{display:flex;flex-wrap:wrap;}
+.mc{flex:1 1 300px;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;border-right:1px solid #f1f5f9;box-sizing:border-box;}
 .mc:last-child{border-bottom:none}
 .mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
 .mcode{font-size:16px;font-weight:800;color:#0f172a}
