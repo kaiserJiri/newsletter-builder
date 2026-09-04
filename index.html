@@ -406,6 +406,8 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           <div class="chip-row" id="tvar-chips"></div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Material</div>
           <div class="chip-row" id="mat-chips"></div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Farbe</div>
+          <div class="chip-row" id="color-chips"></div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Eigenschaften</div>
           <div class="chip-row">
             <span class="chip" id="chip-flex" onclick="toggleFlex()">Flex</span>
@@ -685,6 +687,7 @@ function onProductsLoaded(data) {
   buildBrandCheckboxes();
   buildTvarChips();
   buildMatChips();
+  buildColorChips();
   rebuildList();
 }
 
@@ -695,6 +698,23 @@ let activeTvar  = '';
 let activeMat   = '';
 let filterFlex  = false;
 let filterMulti = false;
+let activeColor = '';
+
+const COLOR_DE_MAP = {'černá':'schwarz','bílá':'weiß','hnědá':'braun','zlatá':'gold','stříbrná':'silber','modrá':'blau','zelená':'grün','červená':'rot','béžová':'beige','šedá':'grau','šedivá':'grau','růžová':'rosa','fialová':'lila','oranžová':'orange','žlutá':'gelb','transparentní':'transparent'};
+function colorFamily(name) {
+  const l = (name||'').toLowerCase();
+  for (const [cz,de] of Object.entries(COLOR_DE_MAP)) { if (l.includes(cz)) return de; }
+  for (const de of Object.values(COLOR_DE_MAP)) { if (l.includes(de)) return de; }
+  return null;
+}
+function buildColorChips() {
+  const families = [...new Set(ALL_PRODUCTS.flatMap(p=>(p.variants||[]).map(v=>colorFamily(v.colorName)).filter(Boolean)))].sort();
+  const el = document.getElementById('color-chips');
+  if (!el) return;
+  el.innerHTML = [['','Alle'],...families.map(f=>[f,f])].map(([val,lbl])=>
+    `<span class="chip${activeColor===val?' active':''}" onclick="setColor('${esc(val)}')">${esc(lbl)}</span>`).join('');
+}
+function setColor(val) { activeColor=val; buildColorChips(); rebuildList(); }
 
 const TVAR_DE = {
   'bez obruby':'Randlos','bezrámečkové':'Randlos','bezrámečkové závěsné':'Randlos (hängend)',
@@ -788,6 +808,7 @@ function filteredProducts() {
     }
     if (filterFlex  && (p.specs||{})['Flex'] !== 'ANO') return false;
     if (filterMulti && (p.specs||{})['Vhodné pro multifokál'] !== 'ANO') return false;
+    if (activeColor && !(p.variants||[]).some(v => colorFamily(v.colorName) === activeColor)) return false;
     if (search) {
       const hay = (p.brand+' '+p.modelName+' '+p.modelNum).toLowerCase();
       if (!search.split(/\s+/).every(t => hay.includes(t))) return false;
