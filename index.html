@@ -1060,22 +1060,19 @@ function buildHTML() {
       }
 
       const vars = p.variants || [];
-      const varRows = [];
-      for (let i = 0; i < vars.length; i += 3) {
-        const cells = vars.slice(i, i+3).map(v => {
-          const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
-          const img  = vUrl
-            ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" width="200" height="105" onerror="this.onerror=null;this.src='${fbk}'">`
-            : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}" width="200" height="105">`;
-          return `<td class="vc">${img}
-            <div class="vb">
-              <div class="vcode">${esc(v.variantCode)}</div>
-              <div class="vfarbe">${esc(transColor(v.colorName||''))}</div>
-            </div>
-          </td>`;
-        }).join('');
-        varRows.push(`<tr>${cells}</tr>`);
-      }
+      const vcCards = vars.map(v => {
+        const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
+        const img  = vUrl
+          ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" width="200" height="105" onerror="this.onerror=null;this.src='${fbk}'">`
+          : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}" width="200" height="105">`;
+        return `<div class="vc-card">
+          ${img}
+          <div class="vb">
+            <div class="vcode">${esc(v.variantCode)}</div>
+            <div class="vfarbe">${esc(transColor(v.colorName||''))}</div>
+          </div>
+        </div>`;
+      }).join('');
 
       return `<div class="mc">
         <div class="mrow">
@@ -1085,7 +1082,7 @@ function buildHTML() {
         ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
         ${descCustHTML}
         ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
-        <table class="vg">${varRows.join('')}</table>
+        <div class="vg-row">${vcCards}</div>
       </div>`;
     }).join('');
 
@@ -1141,17 +1138,17 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 .lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
 .ln{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
 .mc-grid{}
-.mc{padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;box-sizing:border-box;}
-.mc:last-child{border-bottom:none}
+.mc{padding:16px 24px;border-bottom:1px solid #f1f5f9;box-sizing:border-box;}
+.mc:last-child{border-bottom:none;}
+.vg-row{display:flex;flex-wrap:wrap;}
+.vc-card{flex:0 0 33.33%;max-width:33.33%;padding:8px;box-sizing:border-box;text-align:center;}
 .mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
 .mcode{font-size:16px;font-weight:800;color:#0f172a}
 .mprice{background:#e87722;color:#fff;font-size:13px;font-weight:700;padding:3px 14px;border-radius:20px;display:inline-block}
 .gbadge{display:inline-block;background:#f1f5f9;color:#475569;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:'Courier New',monospace;margin-bottom:10px}
 .mdesc-cust{font-size:13px;color:#334155;font-weight:600;margin-bottom:10px;line-height:1.5}
 .mdesc{font-size:13px;color:#64748b;line-height:1.65;margin-bottom:18px}
-.vg{display:table;width:calc(100% + 20px);border-collapse:separate;border-spacing:10px 0;margin:0 -10px}
-.vc{display:table-cell;width:33.33%;vertical-align:top;text-align:center}
-@media(max-width:500px){.vg{display:block;width:100%;margin:0}.vc{display:block;width:100%;margin-bottom:16px}.vg tr{display:block}}
+@media(max-width:500px){.vc-card{flex:0 0 50%;max-width:50%;}}
 
 #mob-toggle{display:none;}
 .btn-label{}
