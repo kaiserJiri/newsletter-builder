@@ -292,13 +292,13 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
   </div>
   <div class="topbar-spacer"></div>
   <button id="mob-toggle" class="btn btn-ghost" onclick="toggleMobView()" title="Editor / Vorschau wechseln">👁 Vorschau</button>
-  <button class="btn btn-ghost" onclick="saveDraft()" title="Entwurf im Browser speichern">💾 Speichern</button>
-  <button class="btn btn-ghost" onclick="loadDraft()" title="Gespeicherten Entwurf laden">📂 Laden</button>
-  <button class="btn btn-ghost" onclick="copyHTML()" title="HTML-Code in Zwischenablage kopieren">📋 Kopieren</button>
-  <button class="btn btn-ghost" onclick="exportPDF()" title="Druckdialog für PDF öffnen">🖨 PDF</button>
-  <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
+  <button class="btn btn-ghost" onclick="saveDraft()" title="Entwurf im Browser speichern">💾 <span class="btn-label">Speichern</span></button>
+  <button class="btn btn-ghost mob-hide" onclick="loadDraft()" title="Gespeicherten Entwurf laden">📂 <span class="btn-label">Laden</span></button>
+  <button class="btn btn-ghost mob-hide" onclick="copyHTML()" title="HTML-Code in Zwischenablage kopieren">📋 <span class="btn-label">Kopieren</span></button>
+  <button class="btn btn-ghost mob-hide" onclick="exportPDF()" title="Druckdialog für PDF öffnen">🖨 <span class="btn-label">PDF</span></button>
+  <button class="btn btn-ghost mob-hide" onclick="resetAll()">↺ <span class="btn-label">Reset</span></button>
   <button class="btn btn-ghost" id="dark-btn" onclick="toggleDark()">🌙</button>
-  <button class="btn btn-primary" onclick="downloadHTML()">⬇ HTML generieren</button>
+  <button class="btn btn-primary mob-hide" onclick="downloadHTML()">⬇ <span class="btn-label">HTML</span></button>
 </div>
 
 <div class="main">
@@ -500,12 +500,36 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
 <div class="status" id="status"></div>
 
 <script>
-function toggleMobView(){
-  const isPreview=document.body.getAttribute('data-mob-view')==='preview';
-  document.body.setAttribute('data-mob-view',isPreview?'editor':'preview');
-  const btn=document.getElementById('mob-toggle');
-  if(btn)btn.textContent=isPreview?'👁 Vorschau':'✏️ Editor';
+function isMobile(){return window.innerWidth<=768;}
+function initMobile(){
+  if(!isMobile())return;
+  const sidebar=document.querySelector('.sidebar');
+  const preview=document.querySelector('.preview-pane');
+  const main=document.querySelector('.main');
+  const body=document.body;
+  body.style.height='auto';body.style.overflow='auto';
+  if(main){main.style.overflow='visible';main.style.height='auto';main.style.flexDirection='column';}
+  if(sidebar){sidebar.style.cssText='width:100vw;min-width:0;max-width:100vw;border-right:none;overflow-y:auto;flex:none;display:block;';}
+  if(preview){preview.style.display='none';}
 }
+function toggleMobView(){
+  if(!isMobile())return;
+  const btn=document.getElementById('mob-toggle');
+  const sidebar=document.querySelector('.sidebar');
+  const preview=document.querySelector('.preview-pane');
+  const showingPreview=preview&&preview.style.display!=='none';
+  if(showingPreview){
+    if(preview)preview.style.display='none';
+    if(sidebar)sidebar.style.display='block';
+    if(btn)btn.textContent='👁 Vorschau';
+  } else {
+    if(sidebar)sidebar.style.display='none';
+    if(preview){preview.style.cssText='display:flex;flex-direction:column;width:100vw;min-width:0;flex:1 1 auto;height:calc(100vh - 52px);';}
+    if(btn)btn.textContent='✏️ Editor';
+  }
+}
+document.addEventListener('DOMContentLoaded',initMobile);
+window.addEventListener('resize',initMobile);
 // ════════════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════════════
@@ -1025,7 +1049,14 @@ body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;fo
 @media(max-width:500px){.vg{display:block;width:100%;margin:0}.vc{display:block;width:100%;margin-bottom:16px}.vg tr{display:block}}
 
 #mob-toggle{display:none;}
+.btn-label{}
 @media(max-width:768px){
+  .mob-hide{display:none!important;}
+  .btn-label{display:none;}
+  .topbar{flex-wrap:wrap;height:auto!important;padding:8px 10px;gap:6px;}
+  .topbar-logo{font-size:13px;}
+  .topbar-spacer{display:none;}
+  .btn{padding:6px 10px;font-size:12px;}
   #mob-toggle{display:inline-flex;align-items:center;gap:4px;}
   html,body{height:auto!important;overflow:auto!important;}
   .main{overflow:hidden!important;}
