@@ -696,7 +696,13 @@ function init() {
   fetch('products.json')
     .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(data => onProductsLoaded(data))
-    .catch(() => showFilePicker());
+    .catch(() => {
+      try {
+        const cached = localStorage.getItem('nl_products_cache');
+        if (cached) { onProductsLoaded(JSON.parse(cached), true); return; }
+      } catch(e) {}
+      showFilePicker();
+    });
 }
 
 function showFilePicker() {
@@ -722,9 +728,10 @@ function handleFileInput(input) {
   reader.readAsText(file);
 }
 
-function onProductsLoaded(data) {
+function onProductsLoaded(data, skipSave) {
   const raw = Array.isArray(data) ? data : [];
   ALL_PRODUCTS = isNewFormat(raw) ? transformNewFormat(raw) : raw;
+  if (!skipSave) { try { localStorage.setItem('nl_products_cache', JSON.stringify(raw)); } catch(e){} }
   document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status">✓ Geladen: <strong>${ALL_PRODUCTS.length}</strong> Produkte</div>
@@ -911,7 +918,7 @@ function rebuildList() {
       ? `<img class="model-thumb" src="${url}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
       : `<div class="model-thumb"></div>`;
 
-    return `<div class="model-item${on?' on':''}" data-gm="${p.gm}" onclick="toggleProd(${p.gm},this)">
+    return `<div class="model-item${on?' on':''}" data-gm="${esc(p.gm)}" onclick="toggleProd('${esc(p.gm)}',this)">
       ${imgTag}
       <div class="model-item-info">
         <div class="model-brand">${esc(p.brand)}</div>
