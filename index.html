@@ -404,6 +404,8 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           </div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Rahmenform</div>
           <div class="chip-row" id="tvar-chips"></div>
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Brillenform</div>
+          <div class="chip-row" id="bform-chips"></div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Material</div>
           <div class="chip-row" id="mat-chips"></div>
           <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;margin-top:8px;">Farbe</div>
@@ -577,10 +579,55 @@ function esc(s) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function imgUrl(hash) {
-  if (!hash) return null;
-  const a = hash.substring(0,2), b = hash.substring(2,4);
-  return `https://cz.mi-optics.cz/img-products/${a}/${b}/${hash}`;
+function imgUrl(fp) {
+  if (!fp) return null;
+  const clean = fp.replace(/\\/g, '/');
+  if (clean.includes('/')) return 'https://cz.mi-optics.cz/img-products/' + clean;
+  return `https://cz.mi-optics.cz/img-products/${clean.substring(0,2)}/${clean.substring(2,4)}/${clean}`;
+}
+
+// ────────────────────────────────────────────────────
+// Transform new DB export format → internal format
+// ────────────────────────────────────────────────────
+function transformNewFormat(raw) {
+  const KMAP = {'women':'dámské','men':'pánské','kids':'dětské','girls':'dívčí','boys':'chlapecké','unisex':'unisex','junior':'junior'};
+  const TMAP = {'fullrim':'celoobruba','halfrim':'poloobruba','rimless':'bez obruby','nylon':'nylon'};
+  const byModel = new Map();
+  raw.forEach(item => {
+    const key = (item.BrandName||'') + '|||' + (item.C_GlobalModel||'');
+    const kv = {};
+    (item.KategorieSlovnik||[]).forEach(k => { if (!kv[k.Tkat]) kv[k.Tkat] = k; });
+    const colorName = kv['Rahmenfarbe']?.Tval || item.C_barva || '';
+    const fp = (item.FilePath||'').replace(/\\/g,'/');
+    if (!byModel.has(key)) {
+      const kolVal = kv['Kollektion']?.hodnota || '';
+      const tvarVal = kv['Rahmentyp']?.hodnota || '';
+      byModel.set(key, {
+        gm: key,
+        brand: item.BrandName||'',
+        modelName: (item.BrandName||'') + ' ' + (item.C_GlobalModel||''),
+        modelNum: item.C_GlobalModel||'',
+        specs: {
+          'Kolekce': KMAP[kolVal] || kolVal,
+          'Typ obruby': TMAP[tvarVal] || tvarVal,
+          'Brillenform': kv['Brillenform']?.Tval || '',
+          'Materiál': kv['Material']?.Tval || '',
+          'Šířka očnice': kv['Glasbreite']?.Tval || '',
+          'Šířka nosníku': kv['Stegbreite']?.Tval || '',
+          'Délka stranice': kv['Bügellänge [mm]']?.Tval || '',
+          'Flex': kv['Federscharnier']?.hodnota === '1' ? 'ANO' : '',
+          'Vhodné pro multifokál': kv['Gleitsichtbrillen']?.hodnota === '1' ? 'ANO' : '',
+        },
+        variants: []
+      });
+    }
+    byModel.get(key).variants.push({ variantCode: item.C_GlobalModelColor||'', colorName, thumbImage: fp });
+  });
+  return [...byModel.values()];
+}
+
+function isNewFormat(data) {
+  return Array.isArray(data) && data.length > 0 && 'BrandName' in data[0] && 'KategorieSlovnik' in data[0];
 }
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="105">' +
@@ -676,7 +723,8 @@ function handleFileInput(input) {
 }
 
 function onProductsLoaded(data) {
-  ALL_PRODUCTS = Array.isArray(data) ? data : [];
+  const raw = Array.isArray(data) ? data : [];
+  ALL_PRODUCTS = isNewFormat(raw) ? transformNewFormat(raw) : raw;
   document.getElementById('prod-count').textContent = ALL_PRODUCTS.length;
   document.getElementById('load-ui').innerHTML = `
     <div class="prod-status">✓ Geladen: <strong>${ALL_PRODUCTS.length}</strong> Produkte</div>
@@ -686,6 +734,7 @@ function onProductsLoaded(data) {
   document.getElementById('model-sect').style.display = '';
   buildBrandCheckboxes();
   buildTvarChips();
+  buildBformChips();
   buildMatChips();
   buildColorChips();
   rebuildList();
@@ -726,6 +775,16 @@ const MAT_DE = {
   'polykarbonát':'Polykarbonat','titan':'Titan','memory titan':'Memory-Titan',
   'nerez':'Edelstahl','nylon':'Nylon','ultem':'Ultem'
 };
+
+let activeBform = '';
+function buildBformChips() {
+  const vals = [...new Set(ALL_PRODUCTS.map(p=>(p.specs||{})['Brillenform']||'').filter(Boolean))].sort();
+  const el = document.getElementById('bform-chips');
+  if (!el) return;
+  el.innerHTML = [['','Alle'],...vals.map(v=>[v,v])].map(([val,lbl])=>
+    `<span class="chip${activeBform===val?' active':''}" onclick="setBform('${esc(val)}')">${esc(lbl)}</span>`).join('');
+}
+function setBform(val){ activeBform=val; buildBformChips(); rebuildList(); }
 
 function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
@@ -800,6 +859,9 @@ function filteredProducts() {
     if (activeTvar) {
       const t = ((p.specs||{})['Typ obruby']||'');
       if (t !== activeTvar) return false;
+    }
+    if (activeBform) {
+      if (((p.specs||{})['Brillenform']||'') !== activeBform) return false;
     }
     if (activeMat) {
       const sp = p.specs||{};
