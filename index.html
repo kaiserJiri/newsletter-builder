@@ -594,7 +594,7 @@ function transformNewFormat(raw) {
   const TMAP = {'fullrim':'celoobruba','halfrim':'poloobruba','rimless':'bez obruby','nylon':'nylon'};
   const byModel = new Map();
   raw.forEach(item => {
-    const key = (item.BrandName||'') + '|||' + (item.C_GlobalModel||'');
+    const key = (item.BrandName||'') + '__' + (item.C_GlobalModel||'');
     const kv = {};
     (item.KategorieSlovnik||[]).forEach(k => { if (!kv[k.Tkat]) kv[k.Tkat] = k; });
     const colorName = kv['Rahmenfarbe']?.Tval || item.C_barva || '';
@@ -603,7 +603,7 @@ function transformNewFormat(raw) {
       const kolVal = kv['Kollektion']?.hodnota || '';
       const tvarVal = kv['Rahmentyp']?.hodnota || '';
       byModel.set(key, {
-        gm: key,
+        gm: key.replace(/[^a-zA-Z0-9_\-]/g, '_'),
         brand: item.BrandName||'',
         modelName: (item.BrandName||'') + ' ' + (item.C_GlobalModel||''),
         modelNum: item.C_GlobalModel||'',
