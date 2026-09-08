@@ -407,7 +407,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
         <!-- Produkte auswählen -->
         <div id="model-sect" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Für Newsletter auswählen</div>
+          <div class="sect-sub">Für Newsletter auswählen <span id="prod-count" style="font-weight:400;color:#94a3b8;font-size:10px;"></span></div>
           <div class="mini-btns">
             <button class="mini-btn" onclick="selectAll(true)">Alle gefiltert</button>
             <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
@@ -690,6 +690,8 @@ function onProductsLoaded(data, skipSave) {
   if (!skipSave) { try { localStorage.setItem('nl_products_cache', JSON.stringify(raw)); } catch(e){} }
   document.getElementById('filter-sect').style.display = '';
   document.getElementById('model-sect').style.display = '';
+  const pc = document.getElementById('prod-count');
+  if (pc) pc.textContent = '(' + ALL_PRODUCTS.length + ' Modelle geladen)';
   buildBrandCheckboxes();
   buildTvarChips();
   buildBformChips();
