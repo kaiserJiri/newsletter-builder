@@ -105,17 +105,22 @@ body {
 }
 .field-label:first-child { margin-top: 0; }
 
-input[type=text], input[type=number], textarea {
+input[type=text], input[type=number], input[type=password], textarea {
   width: 100%; border: 1px solid var(--border); border-radius: 6px;
   padding: 6px 10px; font-size: 12px; color: var(--dark);
   background: white; outline: none; font-family: inherit;
 }
-input[type=text]:focus, input[type=number]:focus, textarea:focus {
+input[type=text]:focus, input[type=number]:focus, input[type=password]:focus, textarea:focus {
   border-color: var(--acc); box-shadow: 0 0 0 2px rgba(232,119,34,0.12);
 }
 textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+/* API source */
+.api-status { font-size: 10px; color: #64748b; line-height: 1.5; margin-top: 2px; word-break: break-word; }
+.api-status.ok  { color: #16a34a; }
+.api-status.err { color: #dc2626; }
 
 /* Search */
 .search-wrap { position: relative; margin-bottom: 8px; }
@@ -235,8 +240,11 @@ body.dark .preview-bar { background: #0f172a; border-color: #334155; color: #94a
 body.dark .preview-bar strong { color: #cbd5e1; }
 /* iframe gets margin so dark bg shows around it — newsletter itself stays white (email preview) */
 body.dark .preview-frame { margin: 0; width: 100%; border-radius: 0; box-shadow: none; }
-body.dark input[type=text], body.dark input[type=number], body.dark textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-body.dark input[type=text]::placeholder, body.dark textarea::placeholder { color: #475569 !important; }
+body.dark input[type=text], body.dark input[type=number], body.dark input[type=password], body.dark textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+body.dark input[type=text]::placeholder, body.dark input[type=password]::placeholder, body.dark textarea::placeholder { color: #475569 !important; }
+body.dark .api-status { color: #94a3b8; }
+body.dark .api-status.ok  { color: #4ade80; }
+body.dark .api-status.err { color: #f87171; }
 body.dark .chip { background: #0f172a; color: #94a3b8; border-color: #334155; }
 body.dark .chip:hover { border-color: var(--acc); color: var(--acc); }
 body.dark .chip.active { background: var(--acc); color: white; border-color: var(--acc); }
@@ -365,6 +373,22 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
       </div>
       <div id="body-produkty" class="sect-body">
 
+        <!-- Datenquelle (API) -->
+        <div class="sect-sub" style="margin-top:0">Datenquelle (API)</div>
+        <label class="field-label">API-URL</label>
+        <input type="text" id="api-url" value="https://dog.mi-optics.cz/api/export/mail-de">
+        <label class="field-label">Token</label>
+        <input type="password" id="api-token" placeholder="Bearer-Token einfügen" autocomplete="off" spellcheck="false">
+        <label class="check-row" style="margin-top:6px">
+          <input type="checkbox" id="api-remember" checked>
+          <span>Token in diesem Browser merken</span>
+        </label>
+        <div class="mini-btns" style="margin-top:6px">
+          <button class="mini-btn" onclick="loadFromAPI()">↻ Von API laden</button>
+          <button class="mini-btn" onclick="clearToken()">Token löschen</button>
+        </div>
+        <div class="api-status" id="api-status">Nicht geladen</div>
+
         <!-- Filtry -->
         <div id="filter-sect" style="display:none">
           <hr class="sect-hr">
@@ -413,7 +437,7 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
             <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
           </div>
           <div class="model-list" id="model-list">
-            <div class="no-models">Bitte zuerst products.json laden.</div>
+            <div class="no-models">Bitte zuerst Produkte von der API laden.</div>
           </div>
         </div>
 
@@ -652,8 +676,87 @@ function toggleSect(id) {
 }
 
 // ════════════════════════════════════════════════════
-//  LOADING
+//  LOADING  (nur API – keine Fallback-Daten)
 // ════════════════════════════════════════════════════
+const API_DEFAULT_URL = 'https://dog.mi-optics.cz/api/export/mail-de';
+const LS_TOKEN = 'nb_api_token';
+const LS_URL   = 'nb_api_url';
+
+function apiStatus(msg, kind) {
+  const el = document.getElementById('api-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'api-status' + (kind ? ' ' + kind : '');
+}
+
+// API kann ein Array oder ein Objekt mit dem Array darin liefern
+function unwrapProducts(d) {
+  if (Array.isArray(d)) return d;
+  if (d && typeof d === 'object') {
+    for (const k of ['data','items','products','result']) {
+      if (Array.isArray(d[k])) return d[k];
+    }
+    const first = Object.values(d).find(Array.isArray);
+    if (first) return first;
+  }
+  return [];
+}
+
+async function loadFromAPI() {
+  const url   = (document.getElementById('api-url').value || '').trim() || API_DEFAULT_URL;
+  const token = (document.getElementById('api-token').value || '').trim().replace(/^Bearer\s+/i, '');
+  if (!token) { clearProducts(); apiStatus('Bitte Token eingeben.', 'err'); return false; }
+  apiStatus('Lade von API …');
+  try {
+    const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
+    if (!r.ok) {
+      throw new Error(r.status === 401 || r.status === 403
+        ? 'Token ungültig oder abgelaufen (HTTP ' + r.status + ')'
+        : 'HTTP ' + r.status);
+    }
+    const data = unwrapProducts(await r.json());
+    if (!data.length) throw new Error('API lieferte keine Produkte.');
+    onProductsLoaded(data);
+    try {
+      if (document.getElementById('api-remember').checked) {
+        localStorage.setItem(LS_TOKEN, token);
+        localStorage.setItem(LS_URL, url);
+      } else {
+        localStorage.removeItem(LS_TOKEN);
+      }
+    } catch(e) {}
+    apiStatus('✓ API geladen · ' + ALL_PRODUCTS.length + ' Modelle · ' + new Date().toLocaleTimeString('de-DE'), 'ok');
+    return true;
+  } catch(e) {
+    const msg = (e instanceof TypeError)
+      ? 'Verbindung fehlgeschlagen – Netzwerk oder CORS (der Server muss https://kaiserjiri.github.io erlauben).'
+      : e.message;
+    clearProducts();
+    apiStatus('✗ ' + msg + ' – keine Produkte geladen.', 'err');
+    console.error('API-Laden fehlgeschlagen:', e);
+    return false;
+  }
+}
+
+function clearToken() {
+  try { localStorage.removeItem(LS_TOKEN); } catch(e) {}
+  document.getElementById('api-token').value = '';
+  apiStatus('Token gelöscht.');
+}
+
+// Keine Fallback-Daten: entweder frisch von der API oder gar nichts.
+function clearProducts() {
+  ALL_PRODUCTS = [];
+  document.getElementById('filter-sect').style.display = 'none';
+  document.getElementById('model-sect').style.display = 'none';
+  const pc = document.getElementById('prod-count');
+  if (pc) pc.textContent = '';
+  document.getElementById('model-list').innerHTML = '<div class="no-models">Keine Daten – bitte zuerst von der API laden.</div>';
+  rebuildSelConfig();
+  updateCount();
+  refresh();
+}
+
 function init() {
   document.getElementById('kolekce-chips').addEventListener('click', e => {
     const chip = e.target.closest('.chip[data-kolekce]');
@@ -674,20 +777,28 @@ function init() {
 
   refresh();
 
+  let tok = '';
   try {
-    const cached = localStorage.getItem('nl_products_cache');
-    if (cached) { onProductsLoaded(JSON.parse(cached), true); return; }
+    tok = localStorage.getItem(LS_TOKEN) || '';
+    const u = localStorage.getItem(LS_URL);
+    if (u) document.getElementById('api-url').value = u;
   } catch(e) {}
-  fetch('products.json')
-    .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-    .then(data => onProductsLoaded(data))
-    .catch(e => console.error('Laden von products.json fehlgeschlagen:', e));
+
+  // Alten Produkt-Cache entfernen – es werden nie mehr veraltete Daten benutzt
+  try { localStorage.removeItem('nl_products_cache'); } catch(e) {}
+
+  if (tok) {
+    document.getElementById('api-token').value = tok;
+    loadFromAPI();
+  } else {
+    clearProducts();
+    apiStatus('Keine Daten – bitte Token eingeben und von der API laden.', 'err');
+  }
 }
 
-function onProductsLoaded(data, skipSave) {
+function onProductsLoaded(data) {
   const raw = Array.isArray(data) ? data : [];
   ALL_PRODUCTS = isNewFormat(raw) ? transformNewFormat(raw) : raw;
-  if (!skipSave) { try { localStorage.setItem('nl_products_cache', JSON.stringify(raw)); } catch(e){} }
   document.getElementById('filter-sect').style.display = '';
   document.getElementById('model-sect').style.display = '';
   const pc = document.getElementById('prod-count');
@@ -963,18 +1074,18 @@ function rebuildSelConfig() {
         </div>
       </div>
       <div class="badge-btns">
-        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" onclick="setBadge(${p.gm},'NEU',this)">NEU</button>
-        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" onclick="setBadge(${p.gm},'SALE',this)">SALE</button>
-        <button class="badge-btn${ex.badge===''?' active-neu':''}" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge(${p.gm},'',this)">—</button>
+        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" onclick="setBadge('${esc(p.gm)}','NEU',this)">NEU</button>
+        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" onclick="setBadge('${esc(p.gm)}','SALE',this)">SALE</button>
+        <button class="badge-btn${ex.badge===''?' active-neu':''}" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge('${esc(p.gm)}','',this)">—</button>
       </div>
       <div class="row2" style="margin-top:6px">
         <div>
           <label class="field-label" style="margin-top:0">Preis (€)</label>
-          <input type="text" value="${esc(ex.price)}" placeholder="89,00 €" oninput="setExtra(${p.gm},'price',this.value)">
+          <input type="text" value="${esc(ex.price)}" placeholder="89,00 €" oninput="setExtra('${esc(p.gm)}','price',this.value)">
         </div>
         <div>
           <label class="field-label" style="margin-top:0">Beschreibung</label>
-          <input type="text" value="${esc(ex.desc)}" placeholder="Kurzbeschreibung" oninput="setExtra(${p.gm},'desc',this.value)">
+          <input type="text" value="${esc(ex.desc)}" placeholder="Kurzbeschreibung" oninput="setExtra('${esc(p.gm)}','desc',this.value)">
         </div>
       </div>
     </div>`;
