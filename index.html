@@ -702,10 +702,24 @@ function unwrapProducts(d) {
   return [];
 }
 
+// Entfernt unsichtbare/nicht druckbare Zeichen, die beim Kopieren aus E-Mail/Chat
+// oft versehentlich mitkopiert werden (Zero-width space, geschützte Leerzeichen,
+// typografische Anführungszeichen usw.) und die der Bearer-Header nicht zulässt.
+function sanitizeToken(raw) {
+  return String(raw || '')
+    .trim()
+    .replace(/^Bearer\s+/i, '')
+    .replace(/[^\x21-\x7E]/g, ''); // nur druckbare ASCII-Zeichen (kein Leerzeichen)
+}
+
 async function loadFromAPI() {
   const url   = (document.getElementById('api-url').value || '').trim() || API_DEFAULT_URL;
-  const token = (document.getElementById('api-token').value || '').trim().replace(/^Bearer\s+/i, '');
+  const rawInput = document.getElementById('api-token').value || '';
+  const token = sanitizeToken(rawInput);
   if (!token) { clearProducts(); apiStatus('Bitte Token eingeben.', 'err'); return false; }
+  if (token !== rawInput.trim()) {
+    document.getElementById('api-token').value = token; // unsichtbare Zeichen im Feld auch entfernen
+  }
   apiStatus('Lade von API …');
   try {
     const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
