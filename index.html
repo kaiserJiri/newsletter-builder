@@ -168,8 +168,14 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .model-brand { font-size: 9px; font-weight: 700; color: var(--acc); text-transform: uppercase; letter-spacing: 0.5px; }
 .model-name  { font-size: 12px; font-weight: 700; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .model-sub   { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.var-dots { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; }
-.var-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+.var-dots { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+.var-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.var-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.25); flex-shrink: 0; }
+.var-name { font-size: 10px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.var-name b { color: #475569; font-weight: 700; }
+body.dark .var-name { color: #94a3b8; }
+body.dark .var-name b { color: #cbd5e1; }
+body.dark .var-dot { border-color: rgba(255,255,255,0.3); }
 .model-add { font-size: 17px; font-weight: 700; color: #cbd5e1; flex-shrink: 0; width: 18px; text-align: center; line-height: 1; }
 .model-item.on .model-add { color: var(--acc); }
 .no-models { font-size: 12px; color: #94a3b8; text-align: center; padding: 16px 0; }
@@ -432,7 +438,7 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
           <div class="sect-sub">Für Newsletter auswählen <span id="prod-count" style="font-weight:400;color:#94a3b8;font-size:10px;"></span></div>
           <div class="mini-btns">
             <button class="mini-btn" onclick="selectAll(true)">Alle gefiltert</button>
-            <button class="mini-btn" onclick="selectAll(false)">Alle entfernen</button>
+            <button class="mini-btn" onclick="clearSelection()" title="Alle ausgewählten Produkte entfernen – unabhängig vom aktiven Filter">Alle entfernen</button>
           </div>
           <div class="model-list" id="model-list">
             <div class="no-models">Bitte zuerst Produkte von der API laden.</div>
@@ -709,6 +715,18 @@ const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
   '<text x="150" y="80" text-anchor="middle" font-family="Arial" font-size="12" fill="#94a3b8">Kein Bild</text>' +
   '</svg>'
 );
+const FAMILY_HEX = {schwarz:'#1e293b','weiß':'#f8fafc',braun:'#92400e',gold:'#d4a017',silber:'#cbd5e1',blau:'#2563eb','grün':'#22c55e',rot:'#ef4444',beige:'#e7d3b0',grau:'#94a3b8',rosa:'#f9a8d4',lila:'#a855f7',orange:'#f97316',gelb:'#facc15',transparent:'#e9eef5'};
+// Punkt mit allen Farben der Variante (z. B. blau | gold | transparent als Tortenstücke)
+function dotBackground(name) {
+  const l = (name||'').toLowerCase();
+  const cols = colorFamilies(name).map(f => FAMILY_HEX[f]).filter(Boolean);
+  if (/\bgun/.test(l)) cols.push('#64748b');
+  if (l.includes('havanna')) cols.push('#7c2d12');
+  if (!cols.length) return colorToBg(name);
+  if (cols.length === 1) return cols[0];
+  const step = 360 / cols.length;
+  return 'conic-gradient(' + cols.map((c,i) => `${c} ${i*step}deg ${(i+1)*step}deg`).join(',') + ')';
+}
 function colorToBg(name) {
   const n = (name||'').toLowerCase();
   if (n.includes('čern')||n.includes('black')||n.includes('schwarz')) return '#1e293b';
@@ -1068,16 +1086,19 @@ function rebuildList() {
 
   list.innerHTML = show.map(p => {
     const on    = selected.has(p.gm);
-    const thumb = (p.variants||[])[0]?.thumbImage;
+    const firstMatch = (p.variants||[]).find(v => hasColor(v, activeColor)) || (p.variants||[])[0];
+    const thumb = firstMatch?.thumbImage;   // Vorschaubild passend zum Farbfilter
     const url   = thumb ? imgUrl(thumb) : null;
     const kolekceRaw = (p.specs||{})['Kolekce']||'';
     const kolekce = KOLEKCE_DE[kolekceRaw.toLowerCase()]||kolekceRaw;
     const filteredVars = (p.variants||[]).filter(v => hasColor(v, activeColor));
     const varCount = filteredVars.length;
     const sub = [kolekce, varCount+(varCount===1?' Farbe':' Farben')].filter(Boolean).join(' · ');
-    const dots = filteredVars.slice(0,8).map(v =>
-      `<span class="var-dot" style="background:${colorToBg(v.colorName)}" title="${esc(v.colorName)}"></span>`
-    ).join('');
+    // jede Variante: geteilter Farbpunkt (alle Farben) + Code + vollständiger Farbname
+    const dots = filteredVars.slice(0,6).map(v => {
+      const code = (v.variantCode||'').split(' ').pop();
+      return `<div class="var-row" title="${esc(v.colorName)}"><span class="var-dot" style="background:${dotBackground(v.colorName)}"></span><span class="var-name"><b>${esc(code)}</b> ${esc(transColor(v.colorName||''))}</span></div>`;
+    }).join('') + (filteredVars.length > 6 ? `<div class="var-name">+ ${filteredVars.length-6} weitere</div>` : '');
     const imgTag = url
       ? `<img class="model-thumb" src="${url}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
       : `<div class="model-thumb"></div>`;
@@ -1130,6 +1151,16 @@ function updateCount() {
   document.getElementById('preview-count').textContent = n + ' Produkt' + (n!==1?'e':'');
   const warn = document.getElementById('limit-warn');
   if (warn) warn.classList.toggle('show', n > LIMIT_WARN);
+}
+
+// Entfernt ALLE ausgewählten Produkte – auch die, die der aktuelle Filter gerade ausblendet
+function clearSelection() {
+  selected.clear();
+  selectedOrder = [];
+  rebuildList();
+  rebuildSelConfig();
+  updateCount();
+  refresh();
 }
 
 function selectAll(on) {
