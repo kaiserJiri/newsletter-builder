@@ -1352,19 +1352,22 @@ function buildHTML() {
     const rub = (ex.rubrik || autoRubrik(p)).trim();
     if (!groups.has(rub)) groups.set(rub, []);
     const vars = (p.variants||[]).filter(v => hasColor(v, ex.colorFilter));
-    vars.forEach(v => groups.get(rub).push({ p, v, ex }));
+    // jedes Modell bekommt eigene Zeile(n) – Farbvarianten nebeneinander
+    if (vars.length) groups.get(rub).push(vars.map(v => ({ p, v, ex })));
   });
 
   let gridRows = '';
-  groups.forEach((cells, rub) => {
+  groups.forEach((models, rub) => {
     gridRows += `<tr><td colspan="3" align="center" style="padding:10px 0 14px 0">
   <p style="margin:0;text-align:center;font-size:16px;font-family:Georgia,'Times New Roman',serif;color:#333333">${esc(rub)}</p>
 </td></tr>\n`;
-    for (let i = 0; i < cells.length; i += 3) {
-      const row = cells.slice(i, i + 3).map(c => buildProductCell(c.p, c.v, c.ex, web));
-      while (row.length < 3) row.push('<td width="33%" style="width:33%">&nbsp;</td>');
-      gridRows += `<tr>${row.join('\n')}</tr>\n`;
-    }
+    models.forEach(cells => {
+      for (let i = 0; i < cells.length; i += 3) {
+        const row = cells.slice(i, i + 3).map(c => buildProductCell(c.p, c.v, c.ex, web));
+        while (row.length < 3) row.push('<td width="33%" style="width:33%">&nbsp;</td>');
+        gridRows += `<tr>${row.join('\n')}</tr>\n`;
+      }
+    });
   });
 
   const productBlock = gridRows
