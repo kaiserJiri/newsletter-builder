@@ -156,8 +156,6 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 .check-row input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--acc); cursor: pointer; flex-shrink: 0; }
 .check-row span { font-size: 11px; color: var(--mid); user-select: none; }
 
-/* Load UI */
-
 /* Model list */
 .model-list { display: flex; flex-direction: column; gap: 3px; max-height: 240px; overflow-y: auto; }
 .model-list::-webkit-scrollbar { width: 3px; }
@@ -223,7 +221,6 @@ textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
 
 /* ─── DARK MODE ──────────────────────────────────────── */
 body.dark { --bg: #0f172a; --border: #334155; --mid: #94a3b8; --muted: #94a3b8; color: #e2e8f0; }
-/* topbar uses var(--dark) as background — keep it dark in dark mode too */
 body.dark .topbar { background: #0f172a; }
 body.dark .sidebar { background: #1e293b; }
 body.dark .sect { border-color: #334155; }
@@ -238,7 +235,6 @@ body.dark .sect-hr { border-color: #334155; }
 body.dark .preview-pane { background: #1e293b; }
 body.dark .preview-bar { background: #0f172a; border-color: #334155; color: #94a3b8; }
 body.dark .preview-bar strong { color: #cbd5e1; }
-/* iframe gets margin so dark bg shows around it — newsletter itself stays white (email preview) */
 body.dark .preview-frame { margin: 0; width: 100%; border-radius: 0; box-shadow: none; }
 body.dark input[type=text], body.dark input[type=number], body.dark input[type=password], body.dark textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
 body.dark input[type=text]::placeholder, body.dark input[type=password]::placeholder, body.dark textarea::placeholder { color: #475569 !important; }
@@ -250,7 +246,6 @@ body.dark .chip:hover { border-color: var(--acc); color: var(--acc); }
 body.dark .chip.active { background: var(--acc); color: white; border-color: var(--acc); }
 body.dark .sel-card { background: #0f172a; border-color: #334155; }
 body.dark .sel-card-name { color: #e2e8f0 !important; }
-/* Product pick list items */
 body.dark .model-item { background: #0f172a; border-color: #334155; }
 body.dark .model-item:hover { background: #1e293b; border-color: #475569; }
 body.dark .model-item.on { background: #1a0f00; border-color: var(--acc); }
@@ -260,9 +255,6 @@ body.dark .model-thumb { border-color: #334155; background: #1e293b; }
 body.dark .model-add { color: #475569; }
 body.dark .model-list::-webkit-scrollbar-thumb { background: #334155; }
 body.dark .no-models, body.dark .more-label { color: #64748b; }
-/* Section labels inside sidebar */
-body.dark .sect-num { background: #334155; color: #94a3b8; }
-body.dark .sect-toggle { color: #e2e8f0; }
 body.dark .sel-card-brand { color: var(--acc) !important; }
 body.dark .drag-handle { color: #475569; }
 body.dark .badge-btn { background: #0f172a; color: #94a3b8; border-color: #334155; }
@@ -271,7 +263,6 @@ body.dark .mini-btn:hover { color: var(--acc); border-color: var(--acc); }
 body.dark .field-label { color: #94a3b8 !important; }
 body.dark .status { background: #0d2b1d; border-color: #166534; }
 body.dark .limit-warn { background: #2d0a0a; border-color: #7f1d1d; }
-body.dark .more-label { color: #64748b; }
 body.dark .search-icon { color: #64748b; }
 body.dark .btn-ghost { color: #94a3b8 !important; border-color: #334155 !important; }
 body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !important; }
@@ -306,9 +297,9 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
   </div>
   <div class="topbar-spacer"></div>
   <button id="mob-toggle" class="btn btn-ghost" onclick="toggleMobView()" title="Editor / Vorschau wechseln">👁 Vorschau</button>
-  <button class="btn btn-ghost" onclick="saveDraft()" title="Entwurf im Browser speichern">💾 <span class="btn-label">Speichern</span></button>
-  <button class="btn btn-ghost mob-hide" onclick="loadDraft()" title="Gespeicherten Entwurf laden">📂 <span class="btn-label">Laden</span></button>
-  <button class="btn btn-ghost mob-hide" onclick="copyHTML()" title="HTML-Code in Zwischenablage kopieren">📋 <span class="btn-label">Kopieren</span></button>
+  <button class="btn btn-ghost" onclick="saveDraft()" title="Aktuellen Stand (Produkte, Preise, Texte) in diesem Browser speichern, um später weiterzuarbeiten">💾 <span class="btn-label">Entwurf speichern</span></button>
+  <button class="btn btn-ghost mob-hide" onclick="loadDraft()" title="Zuletzt gespeicherten Entwurf wieder öffnen (nur in diesem Browser)">📂 <span class="btn-label">Entwurf laden</span></button>
+  <button class="btn btn-green" onclick="copyForEmail()" title="Newsletter kopieren und direkt in eine neue E-Mail einfügen (Strg+V)">📧 <span class="btn-label">Für E-Mail kopieren</span></button>
   <button class="btn btn-ghost mob-hide" onclick="exportPDF()" title="Druckdialog für PDF öffnen">🖨 <span class="btn-label">PDF</span></button>
   <button class="btn btn-ghost mob-hide" onclick="resetAll()">↺ <span class="btn-label">Reset</span></button>
   <button class="btn btn-ghost" id="dark-btn" onclick="toggleDark()">🌙</button>
@@ -319,50 +310,57 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
   <!-- ══════════════ SIDEBAR ══════════════ -->
   <div class="sidebar">
 
-    <!-- ① ZÁHLAVÍ -->
+    <!-- ① KOPFZEILE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-zahlaví" onclick="toggleSect('zahlaví')">
         <div class="sect-title"><span class="sect-num">1</span>Kopfzeile</div>
         <span class="sect-caret" id="caret-zahlaví">▸</span>
       </div>
       <div id="body-zahlaví" style="display:none" class="sect-body">
-        <label class="field-label">Firmenname</label>
-        <input type="text" id="firma" value="BRILLENGROSSHANDEL" oninput="refresh()">
-        <div class="row3" style="margin-top:9px">
+        <label class="field-label">Logo-Bild (URL)</label>
+        <input type="text" id="logo-url" value="https://www.newsletter-brillengrosshandel.net/wp-content/uploads/2020/02/LOGO-Aktionsware.jpg" oninput="refresh()">
+        <div class="row2" style="margin-top:9px">
           <div>
             <label class="field-label" style="margin-top:0">KW</label>
-            <input type="number" id="kw" value="33" min="1" max="53" oninput="refresh()">
+            <input type="number" id="kw" value="39" min="1" max="53" oninput="refresh()">
           </div>
           <div>
             <label class="field-label" style="margin-top:0">Jahr</label>
             <input type="number" id="jahr" value="2026" oninput="refresh()">
           </div>
-          <div>
-            <label class="field-label" style="margin-top:0">Datum</label>
-            <input type="text" id="datum" value="Aug 2026" oninput="refresh()">
-          </div>
         </div>
-        <label class="field-label">Tagline / Slogan</label>
-        <input type="text" id="tagline" value="Rita Bischoff · Mühlacker" oninput="refresh()">
       </div>
     </div>
 
-    <!-- ② ÚVODNÍ TEXT -->
+    <!-- ② EINLEITUNG / AKTION -->
     <div class="sect">
       <div class="sect-toggle" id="tog-uvod" onclick="toggleSect('uvod')">
-        <div class="sect-title"><span class="sect-num">2</span>Einleitung</div>
+        <div class="sect-title"><span class="sect-num">2</span>Einleitung &amp; Aktion</div>
         <span class="sect-caret" id="caret-uvod">▸</span>
       </div>
       <div id="body-uvod" style="display:none" class="sect-body">
-        <label class="field-label">Newsletter-Titel</label>
-        <input type="text" id="thema" value="Kinder &amp; Jugendliche" oninput="refresh()">
-        <label class="field-label">Einleitungstext</label>
-        <textarea id="intro" rows="4" oninput="refresh()">Liebe Augenoptiker:innen, liebe Freunde,
-diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
+        <label class="field-label">Anrede</label>
+        <input type="text" id="anrede" value="Liebe Augenoptiker Innen, liebe Freunde," oninput="refresh()">
+        <label class="field-label">Unterzeile (rot)</label>
+        <input type="text" id="untertitel" value="nachstehend unser &quot;Mittwochs-Angebot&quot;" oninput="refresh()">
+        <label class="field-label">Aktionstitel (groß)</label>
+        <input type="text" id="aktion-titel" value="JEDE FASSUNG 9,90 €" oninput="refresh()">
+        <div class="row2">
+          <div>
+            <label class="field-label">Gültig bis</label>
+            <input type="text" id="gueltig-bis" value="07.10.2026" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">A-Preis (Standard)</label>
+            <input type="text" id="apreis-default" value="9,90 €" oninput="refresh()">
+          </div>
+        </div>
+        <label class="field-label">Laufband-Zeile (rosa Box)</label>
+        <input type="text" id="ticker" value="9,90 € %%%%%% 9,90 € %%%%%% 9,90 € %%%%%% 9,90 €" oninput="refresh()">
       </div>
     </div>
 
-    <!-- ③ PRODUKTY (default open) -->
+    <!-- ③ PRODUKTE (default open) -->
     <div class="sect">
       <div class="sect-toggle open" id="tog-produkty" onclick="toggleSect('produkty')">
         <div class="sect-title">
@@ -387,9 +385,9 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           <button class="mini-btn" onclick="loadFromAPI()">↻ Von API laden</button>
           <button class="mini-btn" onclick="clearToken()">Token löschen</button>
         </div>
-        <div class="api-status" id="api-status">Nicht geladen</div>
+        <div class="api-status" id="api-status">Nenačteno</div>
 
-        <!-- Filtry -->
+        <!-- Filter -->
         <div id="filter-sect" style="display:none">
           <hr class="sect-hr">
           <div class="sect-sub">Suchen &amp; filtern</div>
@@ -446,62 +444,121 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
           ⚠ Mehr als 20 Produkte — E-Mail könnte für manche E-Mail-Clients zu groß sein.
         </div>
 
-        <!-- Preis, Beschreibung & Badge der ausgewählten Produkte -->
+        <!-- Konfiguration der ausgewählten Produkte -->
         <div id="sel-config-wrap" style="display:none">
           <hr class="sect-hr">
-          <div class="sect-sub">Reihenfolge, Preis &amp; Badge</div>
-          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;">Karten ziehen zum Umordnen.</div>
+          <div class="sect-sub">Reihenfolge, Preise &amp; Rubrik</div>
+          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;">Karten ziehen zum Umordnen. Leere Felder = Standardwert.</div>
           <div id="sel-config"></div>
         </div>
 
       </div>
     </div>
 
-    <!-- ④ CENY & PODMÍNKY -->
+    <!-- ④ BESTELLUNG & TEXTE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-ceny" onclick="toggleSect('ceny')">
-        <div class="sect-title"><span class="sect-num">4</span>Preise &amp; Konditionen</div>
+        <div class="sect-title"><span class="sect-num">4</span>Bestellung &amp; Texte</div>
         <span class="sect-caret" id="caret-ceny">▸</span>
       </div>
       <div id="body-ceny" style="display:none" class="sect-body">
-        <label class="field-label">Preistext / Aktion</label>
-        <textarea id="ceny-text" rows="2" placeholder="z. B. Alle Preise zzgl. MwSt. · Solange Vorrat reicht." oninput="refresh()"></textarea>
-        <label class="field-label">Lieferbedingungen</label>
-        <textarea id="dodaci" rows="2" placeholder="z. B. Lieferzeit 2–3 Werktage · Mindestbestellwert 50 €" oninput="refresh()"></textarea>
-        <label class="field-label">Abschlusstext</label>
-        <textarea id="abschluss" rows="3" oninput="refresh()">Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!</textarea>
+        <label class="field-label">Bestellliste .pdf (URL)</label>
+        <input type="text" id="pdf-url" placeholder="https://… (leer = Block ausblenden)" oninput="refresh()">
+        <label class="field-label">Bestellliste .xls (URL)</label>
+        <input type="text" id="xls-url" placeholder="https://… (leer = Block ausblenden)" oninput="refresh()">
+        <label class="field-label">Preishinweis</label>
+        <input type="text" id="preis-hinweis" value="alle Preise zzgl. der gesetzlichen MwSt." oninput="refresh()">
+        <label class="field-label">Vorrat-Hinweis</label>
+        <input type="text" id="vorrat" value="alle Artikel so lange Vorrat reicht." oninput="refresh()">
+        <label class="field-label">Showroom-Text</label>
+        <textarea id="showroom" rows="5" oninput="refresh()">Unser Showroom in Mühlacker ist von Montag bis Freitag von 10.00 bis 17.00 Uhr geöffnet. Falls Sie außerhalb der
+regulären Öffnungszeiten vorbeikommen möchten, können Sie gerne einen Termin mit uns vereinbaren.
+Genießen Sie den Vorteil, entspannt durch die Regale zu gehen, die Modelle anzuschauen und direkt zu kaufen was Ihnen zusagt.
+Wir haben auch immer Schnäppchen und reduzierte Ware für Sie da.</textarea>
+        <label class="field-label">Auswahlsendung-Text</label>
+        <textarea id="auswahl" rows="6" oninput="refresh()">Wir arbeiten auch mit Auswahlsendungen. Falls Sie eine Aktion geplant haben, oder unsere Brillenfassungen einfach
+mal in die Hand nehmen wollen, bestellen Sie eine Auswahlsendung.
+Egal ob telefonisch, per FAX oder email. Setzen Sie sich mit uns in Verbindung. Wir senden Ihnen ein Auswahlpaket zu.
+Sie entnehmen, was Ihnen gefällt.
+Den Rest schicken Sie uns innerhalb von zwei Wochen in den Originaltüten zurück,
+oder wir lassen die Sendung gegen eine Gebühr von 10,90 € zurückholen.</textarea>
+        <label class="field-label">Abschluss (jede Zeile = eigene Zeile)</label>
+        <textarea id="abschluss" rows="4" oninput="refresh()">Wir wünschen Ihnen eine erfolgreiche Woche
+und freuen uns auf Ihre Bestellung!
+Herzlichst
+Das Team vom Brillengroßhandel</textarea>
+        <label class="field-label">Team-Foto (URL)</label>
+        <input type="text" id="team-img" value="https://www.newsletter-brillengrosshandel.net/wp-content/uploads/2011/09/Bischoff_Heinz-klein2-300x172.jpg" oninput="refresh()">
+        <label class="field-label">Bildunterschrift Team</label>
+        <input type="text" id="team-names" value="Rita Bischoff und Petra Heinz" oninput="refresh()">
       </div>
     </div>
 
-    <!-- ⑤ PATIČKA -->
+    <!-- ⑤ FUSSZEILE -->
     <div class="sect">
       <div class="sect-toggle" id="tog-pata" onclick="toggleSect('pata')">
-        <div class="sect-title"><span class="sect-num">5</span>Fußzeile</div>
+        <div class="sect-title"><span class="sect-num">5</span>Kontakt &amp; Fußzeile</div>
         <span class="sect-caret" id="caret-pata">▸</span>
       </div>
       <div id="body-pata" style="display:none" class="sect-body">
-        <label class="field-label">Firmenname</label>
-        <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
-        <label class="field-label">Adresse</label>
-        <input type="text" id="ftr-adresse" value="Rita Bischoff · Mühlacker" oninput="refresh()">
         <div class="row2">
           <div>
-            <label class="field-label">Tel</label>
-            <input type="text" id="ftr-tel" value="+49 7041 815-664" oninput="refresh()">
+            <label class="field-label">Firmenname</label>
+            <input type="text" id="ftr-firma" value="Brillengroßhandel" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">Geschäftsführung</label>
+            <input type="text" id="ftr-gf" value="Rita Bischoff" oninput="refresh()">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="field-label">Straße</label>
+            <input type="text" id="ftr-strasse" value="Ziegeleistr. 18-24" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">PLZ / Ort</label>
+            <input type="text" id="ftr-ort" value="D-75417 Mühlacker" oninput="refresh()">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="field-label">Telefon</label>
+            <input type="text" id="ftr-tel" value="07041 815 664" oninput="refresh()">
           </div>
           <div>
             <label class="field-label">Fax</label>
             <input type="text" id="ftr-fax" value="07041 815 667" oninput="refresh()">
           </div>
         </div>
-        <label class="field-label">E-mail</label>
-        <input type="text" id="ftr-email" value="rb@brillengrosshandel.net" oninput="refresh()">
+        <div class="row2">
+          <div>
+            <label class="field-label">Kontakt 1 – Name</label>
+            <input type="text" id="ftr-name1" value="Frau Bischoff" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">Kontakt 1 – E-Mail</label>
+            <input type="text" id="ftr-email" value="rb@brillengrosshandel.net" oninput="refresh()">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="field-label">Kontakt 2 – Name</label>
+            <input type="text" id="ftr-name2" value="Frau Heinz" oninput="refresh()">
+          </div>
+          <div>
+            <label class="field-label">Kontakt 2 – E-Mail</label>
+            <input type="text" id="ftr-email2" value="ph@brillengrosshandel.net" oninput="refresh()">
+          </div>
+        </div>
         <label class="field-label">Web</label>
         <input type="text" id="ftr-web" value="www.brillengrosshandel.net" oninput="refresh()">
+        <label class="field-label">Copyright-Zeile</label>
+        <input type="text" id="ftr-copy" value="Copyright © Brillengroßhandel Bischoff 2013" oninput="refresh()">
       </div>
     </div>
 
-    <!-- ⑥ E-MAIL NASTAVENÍ -->
+    <!-- ⑥ E-MAIL -->
     <div class="sect">
       <div class="sect-toggle" id="tog-email" onclick="toggleSect('email')">
         <div class="sect-title"><span class="sect-num">6</span>E-Mail (Betreff &amp; Vorschau)</div>
@@ -509,12 +566,12 @@ diese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.</textarea>
       </div>
       <div id="body-email" style="display:none" class="sect-body">
         <div style="font-size:10px;color:#94a3b8;margin-bottom:10px;line-height:1.6;">
-          Sichtbar im E-Mail-Client vor dem Öffnen der Nachricht.
+          Sichtbar im E-Mail-Client vor dem Öffnen der Nachricht. Leer = automatisch aus KW &amp; Aktionstitel.
         </div>
         <label class="field-label">Betreff</label>
-        <input type="text" id="email-subject" placeholder="Neue Kollektion KW 33 – Kinder & Jugendliche" oninput="refresh()">
+        <input type="text" id="email-subject" placeholder="AKTIONSANGEBOTE 2026 KW 39 JEDE FASSUNG 9,90 €" oninput="refresh()">
         <label class="field-label">Vorschautext</label>
-        <input type="text" id="email-pretext" placeholder="Diese Woche 12 neue Modelle ab Lager verfügbar." oninput="refresh()">
+        <input type="text" id="email-pretext" placeholder="Unser Mittwochs-Angebot: jede Fassung 9,90 €" oninput="refresh()">
         <div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:6px;font-size:10px;color:#64748b;line-height:1.7;">
           <strong>📬 Vorschau:</strong><br>
           <span id="subject-preview" style="font-weight:700;color:#1e293b;">–</span><br>
@@ -572,7 +629,7 @@ window.addEventListener('resize',initMobile);
 let ALL_PRODUCTS = [];
 const selected = new Set();           // Set of gm — for O(1) lookup
 let selectedOrder = [];               // ordered array of gm — for rendering order
-const productExtras = new Map();      // gm → { price, desc, badge }
+const productExtras = new Map();      // gm → { price, orig, rubrik, desc, badge, colorFilter }
 let activeKolekce = '';
 const LIMIT_WARN = 20;
 
@@ -580,10 +637,13 @@ const LIMIT_WARN = 20;
 //  UTILITIES
 // ════════════════════════════════════════════════════
 function esc(s) {
-  return String(s)
+  return String(s ?? '')
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function nl2br(s) { return esc(s).replace(/\r?\n/g,'<br>'); }
+function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function webHref(w) { if (!w) return ''; return /^https?:\/\//i.test(w) ? w : 'https://' + w; }
 function imgUrl(fp) {
   if (!fp) return null;
   const clean = fp.replace(/\\/g, '/');
@@ -601,8 +661,13 @@ function transformNewFormat(raw) {
   raw.forEach(item => {
     const key = (item.BrandName||'') + '__' + (item.C_GlobalModel||'');
     const kv = {};
-    (item.KategorieSlovnik||[]).forEach(k => { if (!kv[k.Tkat]) kv[k.Tkat] = k; });
-    const colorName = kv['Rahmenfarbe']?.Tval || item.C_barva || '';
+    const farben = [];
+    (item.KategorieSlovnik||[]).forEach(k => {
+      if (!kv[k.Tkat]) kv[k.Tkat] = k;
+      if (k.Tkat === 'Rahmenfarbe' && k.Tval && !farben.includes(k.Tval)) farben.push(k.Tval);
+    });
+    // mehrere Rahmenfarben (z. B. schwarz + grau) → "schwarz grau"
+    const colorName = farben.join(' ') || item.C_barva || '';
     const fp = (item.FilePath||'').replace(/\\/g,'/');
     if (!byModel.has(key)) {
       const kolVal = kv['Kollektion']?.hodnota || '';
@@ -617,6 +682,7 @@ function transformNewFormat(raw) {
           'Typ obruby': TMAP[tvarVal] || tvarVal,
           'Brillenform': kv['Brillenform']?.Tval || '',
           'Materiál': kv['Material']?.Tval || '',
+          'MatCode': kv['Material']?.hodnota || item.C_material || '',
           'Šířka očnice': kv['Glasbreite']?.Tval || '',
           'Šířka nosníku': kv['Stegbreite']?.Tval || '',
           'Délka stranice': kv['Bügellänge [mm]']?.Tval || '',
@@ -626,7 +692,10 @@ function transformNewFormat(raw) {
         variants: []
       });
     }
-    byModel.get(key).variants.push({ variantCode: item.C_GlobalModelColor||'', colorName, thumbImage: fp });
+    // Vollständiger Code wie im Original: "HORSEFEATHERS TI 3107 TP1"
+    const model = item.C_GlobalModel||'', col = item.C_GlobalModelColor||'';
+    const code = col && model && !col.startsWith(model) ? model + ' ' + col : (col || model);
+    byModel.get(key).variants.push({ variantCode: [item.BrandName, code].filter(Boolean).join(' '), colorName, thumbImage: fp });
   });
   return [...byModel.values()];
 }
@@ -635,30 +704,64 @@ function isNewFormat(data) {
   return Array.isArray(data) && data.length > 0 && 'BrandName' in data[0] && 'KategorieSlovnik' in data[0];
 }
 const FALLBACK_IMG = 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="105">' +
-  '<rect width="200" height="105" fill="#f1f5f9" rx="6"/>' +
-  '<text x="100" y="58" text-anchor="middle" font-family="Arial" font-size="11" fill="#94a3b8">Kein Bild</text>' +
+  '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150">' +
+  '<rect width="300" height="150" fill="#f1f5f9"/>' +
+  '<text x="150" y="80" text-anchor="middle" font-family="Arial" font-size="12" fill="#94a3b8">Kein Bild</text>' +
   '</svg>'
 );
 function colorToBg(name) {
   const n = (name||'').toLowerCase();
-  if (n.includes('čern')||n.includes('black')) return '#1e293b';
-  if (n.includes('bíl')||n.includes('white')) return '#e2e8f0';
-  if (n.includes('šed')||n.includes('grey')||n.includes('gray')) return '#94a3b8';
-  if (n.includes('stříbrn')||n.includes('silver')) return '#cbd5e1';
+  if (n.includes('čern')||n.includes('black')||n.includes('schwarz')) return '#1e293b';
+  if (n.includes('bíl')||n.includes('white')||n.includes('weiß')||n.includes('weiss')) return '#e2e8f0';
+  if (n.includes('šed')||n.includes('grey')||n.includes('gray')||n.includes('grau')) return '#94a3b8';
+  if (n.includes('stříbrn')||n.includes('silver')||n.includes('silber')) return '#cbd5e1';
   if (n.includes('zlat')||n.includes('gold')) return '#d97706';
-  if (n.includes('červen')||n.includes('red')) return '#ef4444';
-  if (n.includes('tmavě modr')||n.includes('navy')) return '#1e3a8a';
-  if (n.includes('modr')||n.includes('blue')) return '#3b82f6';
-  if (n.includes('zelen')||n.includes('green')) return '#22c55e';
-  if (n.includes('fialovo')||n.includes('purple')||n.includes('violet')) return '#a855f7';
-  if (n.includes('hnědá')||n.includes('brown')||n.includes('havanna')) return '#92400e';
-  if (n.includes('růžov')||n.includes('pink')) return '#ec4899';
+  if (n.includes('červen')||n.includes('red')||n.includes('rot')) return '#ef4444';
+  if (n.includes('tmavě modr')||n.includes('navy')||n.includes('dunkelblau')) return '#1e3a8a';
+  if (n.includes('modr')||n.includes('blue')||n.includes('blau')) return '#3b82f6';
+  if (n.includes('zelen')||n.includes('green')||n.includes('grün')) return '#22c55e';
+  if (n.includes('fialovo')||n.includes('purple')||n.includes('violet')||n.includes('lila')) return '#a855f7';
+  if (n.includes('hnědá')||n.includes('brown')||n.includes('havanna')||n.includes('braun')) return '#92400e';
+  if (n.includes('růžov')||n.includes('pink')||n.includes('rosa')) return '#ec4899';
   if (n.includes('oranžov')||n.includes('orange')) return '#f97316';
-  if (n.includes('tyrkys')||n.includes('cyan')||n.includes('turquoise')) return '#06b6d4';
+  if (n.includes('tyrkys')||n.includes('cyan')||n.includes('turquoise')||n.includes('türkis')) return '#06b6d4';
   if (n.includes('transparent')) return '#e2e8f0';
   if (n.includes('gun')||n.includes('metal')) return '#64748b';
   return '#94a3b8';
+}
+
+// ─── Übersetzungen (gemeinsam für Liste + Newsletter) ───
+const KOLEKCE_DE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
+const COLOR_DE = {'černá':'schwarz','bílá':'weiß','hnědá':'braun','zlatá':'gold','stříbrná':'silber','modrá':'blau','zelená':'grün','červená':'rot','béžová':'beige','šedá':'grau','šedivá':'grau','růžová':'rosa','fialová':'lila','oranžová':'orange','žlutá':'gelb','transparentní':'transparent','nude':'nude','gunmetal':'gunmetal'};
+function transColor(c) {
+  const l = (c||'').toLowerCase();
+  return COLOR_DE[l] || l.split(/[-\/\s]+/).map(w => COLOR_DE[w] || w).join(' ');
+}
+
+// Kürzel wie im Original-Newsletter (DA ES VR, HE AC VR …)
+const ABBR_KOL = {'dámské':'DA','pánské':'HE','unisex':'UNI','dětské':'JU','junior':'JU','dívčí':'JU','chlapecké':'JU'};
+const ABBR_MAT = {'acetát':'AC','kov':'ES','nerez':'ES','titan':'TI','memory titan':'TI','ultem':'UL','nylon':'NY','hliník':'AL','polykarbonát':'PC'};
+const ABBR_TYP = {'celoobruba':'VR','plný rámeček':'VR','poloobruba':'NY','poloobroučky':'NY','nylon':'NY','bez obruby':'RL','bezrámečkové':'RL'};
+function productAbbr(sp) {
+  const k = ABBR_KOL[(sp['Kolekce']||'').toLowerCase()] || '';
+  // Material-Kürzel direkt aus der API (TI, TR, AC …), sonst über Übersetzungstabelle
+  const m = (sp['MatCode']||'').toUpperCase() || ABBR_MAT[(sp['Materiál rámečku']||sp['Materiál']||'').toLowerCase()] || '';
+  const t = ABBR_TYP[(sp['Typ obruby']||'').toLowerCase()] || '';
+  return [k, m, t === m ? '' : t].filter(Boolean).join(' ');
+}
+
+// Automatische Rubrik (Zwischenüberschrift) wie im Original
+function autoRubrik(p) {
+  const sp = p.specs || {};
+  const kol = (sp['Kolekce']||'').toLowerCase();
+  const typ = (sp['Typ obruby']||'').toLowerCase();
+  const mat = (sp['Materiál rámečku']||sp['Materiál']||'').toLowerCase();
+  if (['dětské','junior','dívčí','chlapecké'].includes(kol)) return 'MODELLE für KINDER und JUGENDLICHE';
+  if (['poloobruba','poloobroučky','nylon'].includes(typ)) return 'MODELLE mit NYLORRAND für DAMEN und HERREN';
+  if (typ.startsWith('bez') || typ.startsWith('bezrám')) return 'RANDLOSE MODELLE für DAMEN und HERREN';
+  if (mat === 'acetát' || mat.startsWith('acetat') || (sp['MatCode']||'').toUpperCase() === 'AC') return 'ACETATMODELLE für DAMEN und HERREN';
+  if (['celoobruba','plný rámeček'].includes(typ)) return 'VOLLRANDMODELLE für DAMEN und HERREN';
+  return 'WEITERE MODELLE';
 }
 
 // ════════════════════════════════════════════════════
@@ -689,7 +792,6 @@ function apiStatus(msg, kind) {
   el.className = 'api-status' + (kind ? ' ' + kind : '');
 }
 
-// API kann ein Array oder ein Objekt mit dem Array darin liefern
 function unwrapProducts(d) {
   if (Array.isArray(d)) return d;
   if (d && typeof d === 'object') {
@@ -702,34 +804,31 @@ function unwrapProducts(d) {
   return [];
 }
 
-// Entfernt unsichtbare/nicht druckbare Zeichen, die beim Kopieren aus E-Mail/Chat
-// oft versehentlich mitkopiert werden (Zero-width space, geschützte Leerzeichen,
-// typografische Anführungszeichen usw.) und die der Bearer-Header nicht zulässt.
 function sanitizeToken(raw) {
   return String(raw || '')
     .trim()
     .replace(/^Bearer\s+/i, '')
-    .replace(/[^\x21-\x7E]/g, ''); // nur druckbare ASCII-Zeichen (kein Leerzeichen)
+    .replace(/[^\x21-\x7E]/g, '');
 }
 
 async function loadFromAPI() {
   const url   = (document.getElementById('api-url').value || '').trim() || API_DEFAULT_URL;
   const rawInput = document.getElementById('api-token').value || '';
   const token = sanitizeToken(rawInput);
-  if (!token) { clearProducts(); apiStatus('Bitte Token eingeben.', 'err'); return false; }
+  if (!token) { clearProducts(); apiStatus('Zadej prosím token.', 'err'); return false; }
   if (token !== rawInput.trim()) {
-    document.getElementById('api-token').value = token; // unsichtbare Zeichen im Feld auch entfernen
+    document.getElementById('api-token').value = token;
   }
-  apiStatus('Lade von API …');
+  apiStatus('Načítám z API …');
   try {
     const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
     if (!r.ok) {
       throw new Error(r.status === 401 || r.status === 403
-        ? 'Token ungültig oder abgelaufen (HTTP ' + r.status + ')'
-        : 'HTTP ' + r.status);
+        ? 'Token je neplatný nebo vypršel (HTTP ' + r.status + ')'
+        : 'Chyba serveru (HTTP ' + r.status + ')');
     }
     const data = unwrapProducts(await r.json());
-    if (!data.length) throw new Error('API lieferte keine Produkte.');
+    if (!data.length) throw new Error('API nevrátilo žádné produkty.');
     onProductsLoaded(data);
     try {
       if (document.getElementById('api-remember').checked) {
@@ -739,14 +838,14 @@ async function loadFromAPI() {
         localStorage.removeItem(LS_TOKEN);
       }
     } catch(e) {}
-    apiStatus('✓ API geladen · ' + ALL_PRODUCTS.length + ' Modelle · ' + new Date().toLocaleTimeString('de-DE'), 'ok');
+    apiStatus('✓ Načteno z API · ' + ALL_PRODUCTS.length + ' modelů · ' + new Date().toLocaleTimeString('cs-CZ'), 'ok');
     return true;
   } catch(e) {
     const msg = (e instanceof TypeError)
-      ? 'Verbindung fehlgeschlagen – Netzwerk oder CORS (der Server muss https://kaiserjiri.github.io erlauben).'
+      ? 'Nepodařilo se připojit – síť nebo CORS (server musí povolit https://kaiserjiri.github.io)'
       : e.message;
     clearProducts();
-    apiStatus('✗ ' + msg + ' – keine Produkte geladen.', 'err');
+    apiStatus('✗ ' + msg + ' – žádné produkty nenačteny.', 'err');
     console.error('API-Laden fehlgeschlagen:', e);
     return false;
   }
@@ -755,10 +854,9 @@ async function loadFromAPI() {
 function clearToken() {
   try { localStorage.removeItem(LS_TOKEN); } catch(e) {}
   document.getElementById('api-token').value = '';
-  apiStatus('Token gelöscht.');
+  apiStatus('Token smazán.');
 }
 
-// Keine Fallback-Daten: entweder frisch von der API oder gar nichts.
 function clearProducts() {
   ALL_PRODUCTS = [];
   document.getElementById('filter-sect').style.display = 'none';
@@ -771,6 +869,11 @@ function clearProducts() {
   refresh();
 }
 
+function updateSubjectPreview() {
+  document.getElementById('subject-preview').textContent = val('email-subject') || autoSubject();
+  document.getElementById('pretext-preview').textContent = val('email-pretext') || '–';
+}
+
 function init() {
   document.getElementById('kolekce-chips').addEventListener('click', e => {
     const chip = e.target.closest('.chip[data-kolekce]');
@@ -779,14 +882,6 @@ function init() {
     chip.classList.add('active');
     activeKolekce = chip.dataset.kolekce;
     rebuildList();
-  });
-
-  // Subject preview update
-  ['email-subject','email-pretext'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input', () => {
-      document.getElementById('subject-preview').textContent = document.getElementById('email-subject').value || '–';
-      document.getElementById('pretext-preview').textContent = document.getElementById('email-pretext').value || '–';
-    });
   });
 
   refresh();
@@ -798,7 +893,6 @@ function init() {
     if (u) document.getElementById('api-url').value = u;
   } catch(e) {}
 
-  // Alten Produkt-Cache entfernen – es werden nie mehr veraltete Daten benutzt
   try { localStorage.removeItem('nl_products_cache'); } catch(e) {}
 
   if (tok) {
@@ -806,7 +900,7 @@ function init() {
     loadFromAPI();
   } else {
     clearProducts();
-    apiStatus('Keine Daten – bitte Token eingeben und von der API laden.', 'err');
+    apiStatus('Žádná data – zadej token a klikni na „Von API laden“.', 'err');
   }
 }
 
@@ -823,10 +917,12 @@ function onProductsLoaded(data) {
   buildMatChips();
   buildColorChips();
   rebuildList();
+  rebuildSelConfig();
+  refresh();
 }
 
 // ════════════════════════════════════════════════════
-//  TVAR + MATERIAL CHIPS
+//  FILTER CHIPS
 // ════════════════════════════════════════════════════
 let activeTvar  = '';
 let activeMat   = '';
@@ -845,10 +941,10 @@ function buildColorChips() {
   const families = [...new Set(ALL_PRODUCTS.flatMap(p=>(p.variants||[]).map(v=>colorFamily(v.colorName)).filter(Boolean)))].sort();
   const el = document.getElementById('color-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...families.map(f=>[f,f])].map(([val,lbl])=>
-    `<span class="chip${activeColor===val?' active':''}" onclick="setColor('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'],...families.map(f=>[f,f])].map(([v,lbl])=>
+    `<span class="chip${activeColor===v?' active':''}" onclick="setColor('${esc(v)}')">${esc(lbl)}</span>`).join('');
 }
-function setColor(val) { activeColor=val; buildColorChips(); rebuildList(); }
+function setColor(v) { activeColor=v; buildColorChips(); rebuildList(); }
 
 const TVAR_DE = {
   'bez obruby':'Randlos','bezrámečkové':'Randlos','bezrámečkové závěsné':'Randlos (hängend)',
@@ -866,23 +962,19 @@ function buildBformChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p=>(p.specs||{})['Brillenform']||'').filter(Boolean))].sort();
   const el = document.getElementById('bform-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...vals.map(v=>[v,v])].map(([val,lbl])=>
-    `<span class="chip${activeBform===val?' active':''}" onclick="setBform('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'],...vals.map(v=>[v,v])].map(([v,lbl])=>
+    `<span class="chip${activeBform===v?' active':''}" onclick="setBform('${esc(v)}')">${esc(lbl)}</span>`).join('');
 }
-function setBform(val){ activeBform=val; buildBformChips(); rebuildList(); }
+function setBform(v){ activeBform=v; buildBformChips(); rebuildList(); }
 
 function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
   const el = document.getElementById('tvar-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])].map(([val,lbl])=>`
-    <span class="chip${activeTvar===val?' active':''}" onclick="setTvar('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])].map(([v,lbl])=>`
+    <span class="chip${activeTvar===v?' active':''}" onclick="setTvar('${esc(v)}')">${esc(lbl)}</span>`).join('');
 }
-function setTvar(val) {
-  activeTvar = val;
-  buildTvarChips();
-  rebuildList();
-}
+function setTvar(v) { activeTvar = v; buildTvarChips(); rebuildList(); }
 
 function buildMatChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => {
@@ -891,14 +983,10 @@ function buildMatChips() {
   }).filter(Boolean))].sort();
   const el = document.getElementById('mat-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])].map(([val,lbl])=>`
-    <span class="chip${activeMat===val?' active':''}" onclick="setMat('${esc(val)}')">${esc(lbl)}</span>`).join('');
+  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])].map(([v,lbl])=>`
+    <span class="chip${activeMat===v?' active':''}" onclick="setMat('${esc(v)}')">${esc(lbl)}</span>`).join('');
 }
-function setMat(val) {
-  activeMat = val;
-  buildMatChips();
-  rebuildList();
-}
+function setMat(v) { activeMat = v; buildMatChips(); rebuildList(); }
 function toggleFlex() {
   filterFlex = !filterFlex;
   document.getElementById('chip-flex').classList.toggle('active', filterFlex);
@@ -941,17 +1029,11 @@ function filteredProducts() {
       const k = ((p.specs||{})['Kolekce']||'').toLowerCase();
       if (!k.includes(activeKolekce)) return false;
     }
-    if (activeTvar) {
-      const t = ((p.specs||{})['Typ obruby']||'');
-      if (t !== activeTvar) return false;
-    }
-    if (activeBform) {
-      if (((p.specs||{})['Brillenform']||'') !== activeBform) return false;
-    }
+    if (activeTvar && ((p.specs||{})['Typ obruby']||'') !== activeTvar) return false;
+    if (activeBform && ((p.specs||{})['Brillenform']||'') !== activeBform) return false;
     if (activeMat) {
       const sp = p.specs||{};
-      const m = sp['Materiál rámečku']||sp['Materiál']||'';
-      if (m !== activeMat) return false;
+      if ((sp['Materiál rámečku']||sp['Materiál']||'') !== activeMat) return false;
     }
     if (filterFlex  && (p.specs||{})['Flex'] !== 'ANO') return false;
     if (filterMulti && (p.specs||{})['Vhodné pro multifokál'] !== 'ANO') return false;
@@ -984,8 +1066,7 @@ function rebuildList() {
     const thumb = (p.variants||[])[0]?.thumbImage;
     const url   = thumb ? imgUrl(thumb) : null;
     const kolekceRaw = (p.specs||{})['Kolekce']||'';
-    const kolekceDE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
-    const kolekce = kolekceDE[kolekceRaw.toLowerCase()]||kolekceRaw;
+    const kolekce = KOLEKCE_DE[kolekceRaw.toLowerCase()]||kolekceRaw;
     const filteredVars = activeColor ? (p.variants||[]).filter(v=>colorFamily(v.colorName)===activeColor) : (p.variants||[]);
     const varCount = filteredVars.length;
     const sub = [kolekce, varCount+(varCount===1?' Farbe':' Farben')].filter(Boolean).join(' · ');
@@ -1014,6 +1095,10 @@ function rebuildList() {
   updateCount();
 }
 
+function newExtras(colorFilter) {
+  return { price:'', orig:'', rubrik:'', desc:'', badge:'', colorFilter: colorFilter || '' };
+}
+
 function toggleProd(gm, el) {
   if (selected.has(gm)) {
     selected.delete(gm);
@@ -1025,7 +1110,7 @@ function toggleProd(gm, el) {
     selectedOrder.push(gm);
     el.classList.add('on');
     el.querySelector('.model-add').textContent = '✓';
-    if (!productExtras.has(gm)) productExtras.set(gm, { price:'', desc:'', badge:'', colorFilter: activeColor });
+    if (!productExtras.has(gm)) productExtras.set(gm, newExtras(activeColor));
   }
   updateCount();
   rebuildSelConfig();
@@ -1046,7 +1131,7 @@ function selectAll(on) {
       if (!selected.has(p.gm)) {
         selected.add(p.gm);
         selectedOrder.push(p.gm);
-        if (!productExtras.has(p.gm)) productExtras.set(p.gm, { price:'', desc:'', badge:'' });
+        if (!productExtras.has(p.gm)) productExtras.set(p.gm, newExtras(activeColor));
       }
     } else {
       selected.delete(p.gm);
@@ -1059,7 +1144,7 @@ function selectAll(on) {
 }
 
 // ════════════════════════════════════════════════════
-//  SELECTED PRODUCTS CONFIG (drag, badge, cena, popis)
+//  SELECTED PRODUCTS CONFIG (drag, badge, preise, rubrik)
 // ════════════════════════════════════════════════════
 let dragSrcGm = null;
 
@@ -1071,9 +1156,10 @@ function rebuildSelConfig() {
   const selProds = selectedOrder.map(gm => ALL_PRODUCTS.find(p => p.gm === gm)).filter(Boolean);
   if (!selProds.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
 
+  const defPrice = val('apreis-default') || '9,90 €';
   wrap.style.display = '';
   cont.innerHTML = selProds.map(p => {
-    const ex = productExtras.get(p.gm) || { price:'', desc:'', badge:'' };
+    const ex = Object.assign(newExtras(), productExtras.get(p.gm) || {});
     return `<div class="sel-card" draggable="true" data-gm="${p.gm}"
       ondragstart="onDragStart(event,'${esc(p.gm)}')"
       ondragover="onDragOver(event)"
@@ -1090,32 +1176,35 @@ function rebuildSelConfig() {
       <div class="badge-btns">
         <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" onclick="setBadge('${esc(p.gm)}','NEU',this)">NEU</button>
         <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" onclick="setBadge('${esc(p.gm)}','SALE',this)">SALE</button>
-        <button class="badge-btn${ex.badge===''?' active-neu':''}" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge('${esc(p.gm)}','',this)">—</button>
+        <button class="badge-btn" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge('${esc(p.gm)}','',this)">—</button>
       </div>
       <div class="row2" style="margin-top:6px">
         <div>
-          <label class="field-label" style="margin-top:0">Preis (€)</label>
-          <input type="text" value="${esc(ex.price)}" placeholder="89,00 €" oninput="setExtra('${esc(p.gm)}','price',this.value)">
+          <label class="field-label" style="margin-top:0">Originalpreis</label>
+          <input type="text" value="${esc(ex.orig)}" placeholder="27,90 €" oninput="setExtra('${esc(p.gm)}','orig',this.value)">
         </div>
         <div>
-          <label class="field-label" style="margin-top:0">Beschreibung</label>
-          <input type="text" value="${esc(ex.desc)}" placeholder="Kurzbeschreibung" oninput="setExtra('${esc(p.gm)}','desc',this.value)">
+          <label class="field-label" style="margin-top:0">A-Preis</label>
+          <input type="text" value="${esc(ex.price)}" placeholder="${esc(defPrice)}" oninput="setExtra('${esc(p.gm)}','price',this.value)">
         </div>
       </div>
+      <label class="field-label">Rubrik</label>
+      <input type="text" value="${esc(ex.rubrik)}" placeholder="${esc(autoRubrik(p))}" oninput="setExtra('${esc(p.gm)}','rubrik',this.value)">
+      <label class="field-label">Zusatzzeile</label>
+      <input type="text" value="${esc(ex.desc)}" placeholder="z. B. kalt verglasen / incl. Sonnenclip" oninput="setExtra('${esc(p.gm)}','desc',this.value)">
     </div>`;
   }).join('');
 }
 
 function setExtra(gm, key, value) {
-  if (!productExtras.has(gm)) productExtras.set(gm, { price:'', desc:'', badge:'' });
+  if (!productExtras.has(gm)) productExtras.set(gm, newExtras());
   productExtras.get(gm)[key] = value;
   refresh();
 }
 
 function setBadge(gm, badge, btn) {
-  if (!productExtras.has(gm)) productExtras.set(gm, { price:'', desc:'', badge:'' });
+  if (!productExtras.has(gm)) productExtras.set(gm, newExtras());
   productExtras.get(gm).badge = badge;
-  // Update button styles without full rebuild
   const card = btn.closest('.sel-card');
   card.querySelectorAll('.badge-btn').forEach(b => {
     b.classList.remove('active-neu','active-sale');
@@ -1138,9 +1227,7 @@ function onDragOver(e) {
   e.dataTransfer.dropEffect = 'move';
   e.currentTarget.classList.add('drag-over');
 }
-function onDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
 function onDrop(e, targetGm) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
@@ -1153,243 +1240,260 @@ function onDrop(e, targetGm) {
   rebuildSelConfig();
   refresh();
 }
-function onDragEnd(e) {
+function onDragEnd() {
   dragSrcGm = null;
   document.querySelectorAll('.sel-card').forEach(c => c.classList.remove('dragging','drag-over'));
 }
 
 // ════════════════════════════════════════════════════
 //  NEWSLETTER HTML GENERATOR
+//  Tabellen-Layout mit Inline-Styles (wie das Original
+//  des Brillengroßhandels) – funktioniert in Outlook,
+//  Seznam, Gmail usw.
 // ════════════════════════════════════════════════════
+const C_RED_HDR = '#B62E2E';
+const C_RED     = '#A72323';
+const C_GREY_BG = '#F5F5F5';
+const C_PINK    = '#FCE8E8';
+const C_LINE    = '#CBCBCB';
+const F_ARIAL   = "Arial,Helvetica,sans-serif";
+const F_VERD    = "Verdana,Geneva,sans-serif";
+
+function autoSubject() {
+  const jahr = val('jahr'), kw = val('kw'), titel = val('aktion-titel');
+  return `AKTIONSANGEBOTE ${jahr} KW ${kw}${titel ? ' ' + titel : ''}`.trim();
+}
+
+const HR = `<div style="text-align:center"><hr size="2" width="100%" align="center" style="border:0;border-top:1px solid #9a9a9a;border-bottom:1px solid #eeeeee;height:0;margin:6px 0"></div>`;
+
+function buildProductCell(p, v, ex, web) {
+  const sp = p.specs || {};
+  const fbk = FALLBACK_IMG;
+  const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : fbk;
+  const abbr = productAbbr(sp);
+  const oce = sp['Šířka očnice'] || '';
+  const nos = sp['Šířka nosníku'] || '';
+  const bgl = sp['Délka stranice [mm]'] || sp['Délka stranice'] || '';
+  const color = transColor(v.colorName || '');
+  const colorLine = [color, oce && nos ? `${oce}□${nos}` : '', bgl ? `BGL ${bgl}` : ''].filter(Boolean).join(' ');
+  const aPreis = ex.price || val('apreis-default') || '';
+  const badge = ex.badge === 'NEU'  ? `<strong style="color:${C_RED}">NEU</strong><br>`
+              : ex.badge === 'SALE' ? `<strong style="color:red">SALE</strong><br>` : '';
+
+  const lines = [
+    badge + esc(v.variantCode || p.modelName),
+    abbr ? esc(abbr) : '',
+    colorLine ? esc(colorLine) : '',
+    ex.desc ? esc(ex.desc) : '',
+    ex.orig ? `Originalpreis: ${esc(ex.orig)} -` : '',
+    aPreis ? `<strong style="font-family:${F_ARIAL};color:#000000">A-Preis: ${esc(aPreis)}</strong>` : ''
+  ].filter(Boolean).join('<br>\n');
+
+  return `<td width="33%" valign="top" align="center" style="width:33%;padding:8px 4px 4px 4px">
+  <a href="${esc(web)}" target="_blank" style="text-decoration:none"><img src="${esc(vUrl)}" width="260" alt="${esc(p.modelName + ' ' + color)}" style="display:block;margin:0 auto;width:100%;max-width:260px;height:auto;border:0"></a>
+  <p style="margin:8px 0 16px 0;text-align:center;line-height:18px;font-size:12px;font-family:${F_ARIAL};color:#333333">${lines}</p>
+</td>`;
+}
+
 function buildHTML() {
-  const kw         = document.getElementById('kw').value;
-  const jahr       = document.getElementById('jahr').value;
-  const firma      = document.getElementById('firma').value || 'BRILLENGROSSHANDEL';
-  const tagline    = document.getElementById('tagline').value;
-  const datum      = document.getElementById('datum').value;
-  const thema      = document.getElementById('thema').value;
-  const intro      = document.getElementById('intro').value.replace(/\n/g,'<br>');
-  const abschluss  = document.getElementById('abschluss').value.replace(/\n/g,'<br>');
-  const cenyText   = document.getElementById('ceny-text').value.replace(/\n/g,'<br>');
-  const dodaci     = document.getElementById('dodaci').value.replace(/\n/g,'<br>');
-  const ftrFirma   = document.getElementById('ftr-firma').value;
-  const ftrAdresse = document.getElementById('ftr-adresse').value;
-  const ftrTel     = document.getElementById('ftr-tel').value;
-  const ftrFax     = document.getElementById('ftr-fax').value;
-  const ftrEmail   = document.getElementById('ftr-email').value;
-  const ftrWeb     = document.getElementById('ftr-web').value;
-  const subject    = document.getElementById('email-subject').value;
-  const pretext    = document.getElementById('email-pretext').value;
+  const kw        = val('kw');
+  const jahr      = val('jahr');
+  const logoUrl   = val('logo-url');
+  const anrede    = val('anrede');
+  const untertitel= val('untertitel');
+  const titel     = val('aktion-titel');
+  const gueltig   = val('gueltig-bis');
+  const ticker    = val('ticker');
+  const pdfUrl    = val('pdf-url').trim();
+  const xlsUrl    = val('xls-url').trim();
+  const preisHinw = val('preis-hinweis');
+  const vorrat    = val('vorrat');
+  const showroom  = val('showroom');
+  const auswahl   = val('auswahl');
+  const abschluss = val('abschluss');
+  const teamImg   = val('team-img');
+  const teamNames = val('team-names');
+  const firma     = val('ftr-firma');
+  const gf        = val('ftr-gf');
+  const strasse   = val('ftr-strasse');
+  const ort       = val('ftr-ort');
+  const tel       = val('ftr-tel');
+  const fax       = val('ftr-fax');
+  const name1     = val('ftr-name1');
+  const mail1     = val('ftr-email');
+  const name2     = val('ftr-name2');
+  const mail2     = val('ftr-email2');
+  const webRaw    = val('ftr-web');
+  const web       = webHref(webRaw);
+  const copy      = val('ftr-copy');
+  const subject   = val('email-subject') || autoSubject();
+  const pretext   = val('email-pretext');
 
-  const fu = firma.toUpperCase();
-  const logoHTML = fu.length > 6
-    ? `${esc(fu.slice(0,6))}<em>${esc(fu.slice(6))}</em>`
-    : `<em>${esc(fu)}</em>`;
-
+  // ── Produkte nach Rubrik gruppieren (Reihenfolge = erste Erwähnung) ──
   const selProds = selectedOrder.map(gm => ALL_PRODUCTS.find(p => p.gm === gm)).filter(Boolean);
-  const byBrand = new Map();
+  const groups = new Map();
   selProds.forEach(p => {
-    if (!byBrand.has(p.brand)) byBrand.set(p.brand, []);
-    byBrand.get(p.brand).push(p);
+    const ex = Object.assign(newExtras(), productExtras.get(p.gm) || {});
+    const rub = (ex.rubrik || autoRubrik(p)).trim();
+    if (!groups.has(rub)) groups.set(rub, []);
+    const vars = (p.variants||[]).filter(v => !ex.colorFilter || colorFamily(v.colorName) === ex.colorFilter);
+    vars.forEach(v => groups.get(rub).push({ p, v, ex }));
   });
 
-  const fbk = FALLBACK_IMG.replace(/'/g,"\\'");
+  let gridRows = '';
+  groups.forEach((cells, rub) => {
+    gridRows += `<tr><td colspan="3" align="center" style="padding:10px 0 14px 0">
+  <p style="margin:0;text-align:center;font-size:16px;font-family:Georgia,'Times New Roman',serif;color:#333333">${esc(rub)}</p>
+</td></tr>\n`;
+    for (let i = 0; i < cells.length; i += 3) {
+      const row = cells.slice(i, i + 3).map(c => buildProductCell(c.p, c.v, c.ex, web));
+      while (row.length < 3) row.push('<td width="33%" style="width:33%">&nbsp;</td>');
+      gridRows += `<tr>${row.join('\n')}</tr>\n`;
+    }
+  });
 
-  const sectHTML = [...byBrand.entries()].map(([brand, prods]) => {
-    const prodCards = prods.map(p => {
-      const sp  = p.specs || {};
-      const KODE = {'dámské':'Damen','pánské':'Herren','dětské':'Kinder','dívčí':'Mädchen','chlapecké':'Jungen','unisex':'Unisex','junior':'Junior'};
-      const COLOR_DE = {'černá':'schwarz','bílá':'weiß','hnědá':'braun','zlatá':'gold','stříbrná':'silber','modrá':'blau','zelená':'grün','červená':'rot','béžová':'beige','šedá':'grau','šedivá':'grau','růžová':'rosa','fialová':'lila','oranžová':'orange','žlutá':'gelb','transparentní':'transparent','nude':'nude','gunmetal':'gunmetal'};
-      const transColor = c => { const l=c.toLowerCase(); return COLOR_DE[l]||(l.split(/[-\/\s]+/).map(w=>COLOR_DE[w]||w).join('-')); };
-      const typRaw = sp['Typ obruby'] || '';
-      const matRaw = sp['Materiál rámečku'] || sp['Materiál'] || '';
-      const typ = TVAR_DE[typRaw.toLowerCase()]||TVAR_DE[typRaw]||typRaw;
-      const mat = MAT_DE[matRaw.toLowerCase()]||MAT_DE[matRaw]||matRaw;
-      const oce = sp['Šířka očnice'] || '';
-      const nos = sp['Šířka nosníku'] || '';
-      const str = sp['Délka stranice [mm]'] || sp['Délka stranice'] || '';
-      const flex  = sp['Flex']==='ANO' ? ' · Flex' : '';
-      const multi = sp['Vhodné pro multifokál']==='ANO' ? ' · Multifokal' : '';
-      const kolekceRaw = sp['Kolekce'] || '';
-      const kolekce = KODE[kolekceRaw.toLowerCase()]||KODE[kolekceRaw]||kolekceRaw;
-      const dimStr = [oce&&nos ? oce+'□'+nos : '', str ? str+'mm' : ''].filter(Boolean).join(' / ');
-      const badge  = [kolekce, dimStr].filter(Boolean).join(' · ');
-      const desc   = [typ, mat].filter(Boolean).join(' · ') + flex + multi;
+  const productBlock = gridRows
+    ? `<table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%">
+${gridRows}</table>`
+    : `<p style="text-align:center;padding:40px 0;font-family:${F_ARIAL};font-size:13px;color:#999999">Keine Produkte ausgewählt – links in der Liste anklicken.</p>`;
 
-      const extra = productExtras.get(p.gm) || {};
-      const priceHTML   = extra.price ? `<span class="mprice">${esc(extra.price)}</span>` : '';
-      const descCustHTML = extra.desc ? `<div class="mdesc-cust">${esc(extra.desc)}</div>` : '';
-
-      // NEU / SALE badge
-      let badgeHTML = '';
-      if (extra.badge === 'NEU') {
-        badgeHTML = `<span style="display:inline-block;background:#e87722;color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;vertical-align:middle;">NEU</span>`;
-      } else if (extra.badge === 'SALE') {
-        badgeHTML = `<span style="display:inline-block;background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;letter-spacing:1px;margin-left:8px;vertical-align:middle;">SALE</span>`;
-      }
-
-      const prodColor = extra.colorFilter || '';
-      const vars = (p.variants||[]).filter(v => !prodColor || colorFamily(v.colorName)===prodColor);
-      const vcCards = vars.map(v => {
-        const vUrl = v.thumbImage ? imgUrl(v.thumbImage) : null;
-        const img  = vUrl
-          ? `<img class="vi" src="${esc(vUrl)}" alt="${esc(v.colorName)}" width="200" height="105" onerror="this.onerror=null;this.src='${fbk}'">`
-          : `<img class="vi" src="${fbk}" alt="${esc(v.colorName)}" width="200" height="105">`;
-        return `<div class="vc-card">
-          ${img}
-          <div class="vb">
-            <div class="vcode">${esc(v.variantCode)}</div>
-            <div class="vfarbe">${esc(transColor(v.colorName||''))}</div>
-          </div>
-        </div>`;
-      }).join('');
-
-      return `<div class="mc">
-        <div class="mrow">
-          <span class="mcode">${esc(p.modelName)}</span>${badgeHTML}
-          ${priceHTML}
-        </div>
-        ${badge ? `<span class="gbadge">${esc(badge)}</span>` : ''}
-        ${descCustHTML}
-        ${desc ? `<div class="mdesc">${esc(desc)}</div>` : ''}
-        <div class="vg-row">${vcCards}</div>
-      </div>`;
-    }).join('');
-
-    return `<div class="ls">
-      <div class="lh"><span class="ln">${esc(brand)}</span></div>
-      <div class="mc-grid">${prodCards}</div>
-    </div>`;
-  }).join('');
-
-  const noContent = !selProds.length
-    ? `<div style="background:#fff;text-align:center;padding:60px;color:#94a3b8;font-size:14px;border-radius:10px;margin-top:16px;">
-        Keine Produkte ausgewählt.<br><em style="font-size:12px">Kliknutím na produkt v levém panelu ho přidáte do newsletteru.</em>
-       </div>` : '';
-
-  const cenyBlock = (cenyText || dodaci) ? `
-  <div class="bst">
-    ${cenyText ? `<div>${cenyText}</div>` : ''}
-    ${cenyText && dodaci ? '<br>' : ''}
-    ${dodaci ? `<div>${dodaci}</div>` : ''}
-  </div>` : '';
-
-  const bstBlock = `
-  <div class="bst">
-    ${ftrWeb   ? `<strong>Online bestellen:</strong> <a href="https://${esc(ftrWeb)}">${esc(ftrWeb)}</a><br>` : ''}
-    ${ftrEmail ? `<strong>E-Mail:</strong> <a href="mailto:${esc(ftrEmail)}">${esc(ftrEmail)}</a><br>` : ''}
-    ${ftrTel   ? `<strong>Tel:</strong> ${esc(ftrTel)}` : ''}${ftrTel&&ftrFax ? ` &nbsp;·&nbsp; <strong>Fax:</strong> ${esc(ftrFax)}` : ''}
-  </div>`;
+  const pVerdB = (inner, extra='') => `<p style="margin:0 0 14px 0;font-size:13px;line-height:18px;font-weight:bold;font-family:${F_VERD};color:#000000;${extra}">${inner}</p>`;
+  const pCenter = inner => `<p style="margin:6px 0;text-align:center;font-size:16px;line-height:22px;font-family:${F_VERD};color:#303030">${inner}</p>`;
+  const link = (href, text, style='') => `<a href="${esc(href)}" target="_blank" style="color:#000000;${style}">${text}</a>`;
 
   const pretextTag = pretext
-    ? `<div style="display:none;font-size:1px;color:#ffffff;max-height:0;max-width:0;opacity:0;overflow:hidden;">${esc(pretext)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
+    ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${esc(pretext)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
     : '';
+
+  const bestellBlock = (pdfUrl || xlsUrl) ? `
+<tr><td style="padding:1px">
+  ${pdfUrl ? `<p style="margin:0 0 6px 0;font-size:12px;line-height:18px;font-family:${F_ARIAL}">${link(pdfUrl, '<strong>Bestellliste .pdf</strong>')}</p>
+  ${pVerdB('öffnen (indem Sie auf Bestellliste .pdf klicken) - ausdrucken -<br>Kundennummer bzw. Anschrift und Bestellmenge eintragen - zurückfaxen')}` : ''}
+  ${xlsUrl ? `<p style="margin:0 0 6px 0;font-size:12px;line-height:18px;font-family:${F_ARIAL}">${link(xlsUrl, '<strong>Bestellliste .xls</strong>')}</p>
+  ${pVerdB('öffnen (indem Sie auf Bestellliste .xls klicken) - Bestellmenge eintragen - per&nbsp; email senden')}` : ''}
+</td></tr>` : '';
+
+  const abschlussHTML = abschluss.split(/\r?\n/).filter(l => l.trim()).map(l => pCenter(esc(l))).join('\n');
 
   return `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-${subject ? `<meta name="subject" content="${esc(subject)}">` : ''}
-<title>${subject ? esc(subject) : `${esc(ftrFirma||firma)} – KW ${esc(kw)} / ${esc(jahr)} | ${esc(thema)}`}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#f1f5f9;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;color:#1e293b;padding:24px 0 0}
-.wrap{max-width:700px;margin:0 auto}
-.hdr{background:#0f172a;padding:36px 40px 32px;text-align:center;border-radius:12px 12px 0 0}
-.logo{font-size:28px;font-weight:900;color:#fff;letter-spacing:5px;text-transform:uppercase}
-.logo em{color:#e87722;font-style:normal}
-.kwline{color:#94a3b8;font-size:12px;margin-top:8px;letter-spacing:2px;text-transform:uppercase}
-.kwline-datum{color:#64748b;font-size:11px;margin-top:3px;letter-spacing:1px}
-.thema-acc{display:block;width:40px;height:3px;background:#e87722;margin:20px auto 12px;border-radius:2px}
-.thema{font-size:22px;font-weight:800;color:#fff;letter-spacing:1.5px;text-transform:uppercase}
-.intro{background:#fff;padding:18px 40px;font-size:13px;color:#64748b;line-height:1.8;border-left:3px solid #e87722}
-.ls{background:#fff;margin-top:16px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.lh{background:#f8fafc;padding:16px 32px;border-left:4px solid #e87722;border-bottom:1px solid #e2e8f0;display:flex;align-items:baseline;gap:14px}
-.ln{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;text-transform:uppercase}
-.mc-grid{}
-.mc{padding:16px 24px;border-bottom:1px solid #f1f5f9;box-sizing:border-box;}
-.mc:last-child{border-bottom:none;}
-.vg-row{display:flex;flex-wrap:wrap;}
-.vc-card{flex:0 0 33.33%;max-width:33.33%;padding:8px;box-sizing:border-box;text-align:center;}
-.mrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
-.mcode{font-size:16px;font-weight:800;color:#0f172a}
-.mprice{background:#e87722;color:#fff;font-size:13px;font-weight:700;padding:3px 14px;border-radius:20px;display:inline-block}
-.gbadge{display:inline-block;background:#f1f5f9;color:#475569;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:'Courier New',monospace;margin-bottom:10px}
-.mdesc-cust{font-size:13px;color:#334155;font-weight:600;margin-bottom:10px;line-height:1.5}
-.mdesc{font-size:13px;color:#64748b;line-height:1.65;margin-bottom:18px}
-@media(max-width:500px){.vc-card{flex:0 0 50%;max-width:50%;}}
-
-#mob-toggle{display:none;}
-.btn-label{}
-@media(max-width:768px){
-  .mob-hide{display:none!important;}
-  .btn-label{display:none;}
-  .topbar{padding:8px 10px;gap:6px;height:auto;}
-  .topbar-logo,.topbar-sub,.topbar-spacer{display:none!important;}
-  .btn{padding:6px 9px;font-size:11px;}
-  #mob-toggle{display:inline-flex;align-items:center;gap:4px;}
-  html,body{height:auto!important;overflow:auto!important;}
-  /* editor mode (default) */
-  .main{display:flex;flex-direction:column;height:auto;overflow:visible;}
-  body:not([data-mob-view="preview"]) .preview-pane{display:none!important;}
-  body:not([data-mob-view="preview"]) .sidebar{width:100vw!important;min-width:0!important;max-width:100vw!important;border-right:none!important;overflow-y:visible!important;flex:1 1 auto!important;height:auto!important;}
-  /* preview mode */
-  body[data-mob-view="preview"] .sidebar{display:none!important;}
-  body[data-mob-view="preview"] .preview-pane{display:flex!important;flex-direction:column!important;width:100vw!important;flex:1 1 auto!important;min-height:100vh!important;}
-  input,textarea,select{max-width:100%!important;width:100%!important;box-sizing:border-box!important;}
-  .sect-body{padding:0 12px 12px;}
-  .model-list{max-height:60vh!important;}
-}
-.vi{width:100%;height:105px;object-fit:cover;border-radius:8px;display:block;border:1px solid #e2e8f0;background:#f1f5f9}
-.vb{margin-top:8px;padding:0 2px}
-.vcode{font-family:'Courier New',monospace;font-size:11px;font-weight:700;color:#475569}
-.vfarbe{font-size:12px;color:#64748b;margin:4px 0;line-height:1.4}
-.abs{background:#fff;margin-top:16px;padding:24px 40px;border-radius:10px;font-size:13px;color:#64748b;line-height:1.9;border-left:3px solid #e87722;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.abs strong{color:#334155}
-.bst{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 32px;margin-top:12px;font-size:12.5px;color:#475569;line-height:2.2}
-.bst a{color:#e87722;text-decoration:none;font-weight:600}
-.ftr{background:#0f172a;padding:28px 40px;text-align:center;border-radius:0 0 12px 12px;margin-top:16px}
-.ftr-brand{font-size:18px;font-weight:800;color:#e87722;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
-.ftr p{color:#94a3b8;font-size:12px;margin:5px 0;line-height:1.6}
-.ftr a{color:#e87722;text-decoration:none}
-.ftr-legal{margin-top:14px;padding-top:12px;border-top:1px solid #1e293b;font-size:11px;color:#475569}
-</style>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>${esc(subject)}</title>
 </head>
-<body>
+<body style="margin:0;padding:0;background:#ffffff;-webkit-text-size-adjust:100%">
 ${pretextTag}
-<div class="wrap">
+<table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;background:#ffffff">
+<tr><td align="center" style="padding:15px 0">
 
-  <div class="hdr">
-    <div class="logo">${logoHTML}</div>
-    <div class="kwline">${esc(tagline)}${tagline&&kw?' · ':''}KW ${esc(kw)} / ${esc(jahr)}</div>
-    ${datum ? `<div class="kwline-datum">${esc(datum)}</div>` : ''}
-    <span class="thema-acc"></span>
-    <div class="thema">${esc(thema)}</div>
-  </div>
+<table role="presentation" border="0" cellspacing="0" cellpadding="0" width="900" style="width:100%;max-width:900px">
 
-  <div class="intro">${intro}</div>
+  <!-- LOGO -->
+  <tr><td align="center" style="background:${C_RED_HDR};padding:0">
+    ${logoUrl ? `<img src="${esc(logoUrl)}" width="900" alt="${esc(firma)} – Aktionsware" style="display:block;width:100%;max-width:900px;height:auto;border:0">` : `<div style="padding:30px;font-family:${F_VERD};font-size:28px;color:#ffffff">${esc(firma)}</div>`}
+  </td></tr>
 
-  ${sectHTML}${noContent}
+  <!-- INHALT -->
+  <tr><td style="background:${C_GREY_BG};padding:16px">
 
-  <div class="abs">
-    ${abschluss}<br><br>
-    <strong>Herzlichst,<br>Das Team von ${esc(ftrFirma||firma)}</strong>
-  </div>
+    <div style="border-bottom:1px solid ${C_LINE};padding-bottom:4px;margin-bottom:12px">&nbsp;</div>
 
-  ${cenyBlock}
-  ${bstBlock}
+    <div style="border-bottom:1px solid ${C_LINE};padding:0 0 4px 0">
+      <p style="margin:0 0 4px 0;font-size:18px;font-weight:bold;font-family:${F_ARIAL};color:#000000">${esc(anrede)}</p>
+      ${untertitel ? `<p style="margin:0 0 4px 0;font-size:16px;font-weight:bold;font-family:${F_ARIAL};color:${C_RED}">${esc(untertitel)}</p>` : ''}
+    </div>
 
-  <div class="ftr">
-    <div class="ftr-brand">${esc(ftrFirma)}</div>
-    ${ftrAdresse ? `<p>${esc(ftrAdresse)}</p>` : ''}
-    ${ftrTel ? `<p>Tel. ${esc(ftrTel)}${ftrFax ? ` · Fax ${esc(ftrFax)}` : ''}</p>` : ''}
-    ${ftrEmail ? `<p><a href="mailto:${esc(ftrEmail)}">${esc(ftrEmail)}</a></p>` : ''}
-    ${ftrWeb ? `<p><a href="https://${esc(ftrWeb)}">${esc(ftrWeb)}</a></p>` : ''}
-    <div class="ftr-legal">alle Preise zzgl. der gesetzlichen MwSt. · alle Artikel so lange Vorrat reicht.</div>
-  </div>
+    ${titel ? `<h1 style="margin:20px 0;text-align:center;font-size:32px;font-weight:bold;font-family:${F_VERD};color:#303030">${esc(titel)}</h1>` : ''}
 
-</div>
+    ${gueltig ? `<div style="border-bottom:1px solid ${C_LINE};padding:0 0 4px 0">
+      <p style="margin:0 0 4px 0;font-size:16px;font-weight:bold;font-family:${F_ARIAL};color:#000000">AKTIONSRABATT GÜLTIG BIS&nbsp;&nbsp; ${esc(gueltig)}&nbsp; oder so lange Vorrat reicht</p>
+    </div>` : ''}
+
+    <p style="margin:0 0 16px 0;line-height:18px;font-size:12px">&nbsp;</p>
+
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="98%" style="width:98%;background:${C_PINK}">
+
+      ${ticker ? `<tr><td style="padding:14px 8px 10px 8px">
+        <div style="border-bottom:1px solid ${C_LINE};padding-bottom:4px">
+          <p style="margin:0;font-size:16px;font-weight:bold;font-family:${F_ARIAL};color:red">&nbsp;${esc(ticker)}</p>
+        </div>
+      </td></tr>
+      <tr><td style="padding:1px">${HR}</td></tr>` : ''}
+
+      <tr><td style="padding:40px 4px 10px 4px">
+        <div style="border-bottom:1px solid ${C_LINE};padding-bottom:4px;margin-bottom:18px">
+          <p style="margin:0 0 4px 0;font-size:16px;font-weight:bold;font-family:${F_ARIAL};color:#000000">Besuchen Sie unseren Online Shop unter<br>
+          ${link(web, esc(webRaw), 'font-size:12px;font-weight:normal')}</p>
+        </div>
+        ${pVerdB('Registrieren Sie sich, wir schalten Sie dann frei, sodass Sie alle Produkte mit Preisen<br>sehen und auch direkt bestellen können.')}
+        ${pVerdB(`<br>Unsere emailadressen lauten:<br>
+          ${mail1 ? `${esc(name1)}: <a href="mailto:${esc(mail1)}" style="color:#333333;font-weight:normal">${esc(mail1)}</a><br>` : ''}
+          ${mail2 ? `${esc(name2)}:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="mailto:${esc(mail2)}" style="color:#333333;font-weight:normal">${esc(mail2)}</a>` : ''}`)}
+        ${pVerdB(`${tel ? `Telefon: ${esc(tel)}<br>` : ''}${fax ? `FAX:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${esc(fax)}` : ''}`)}
+      </td></tr>
+
+      ${bestellBlock}
+
+      <!-- PRODUKTE -->
+      <tr><td align="center" style="padding:1px">
+        ${productBlock}
+      </td></tr>
+
+      <!-- HINWEISE -->
+      <tr><td style="padding:0">${HR}${HR}${HR}</td></tr>
+      ${preisHinw ? `<tr><td>${pCenter(esc(preisHinw) + '&nbsp;')}</td></tr>` : ''}
+      ${vorrat ? `<tr><td>${pCenter(esc(vorrat) + '&nbsp;')}</td></tr>` : ''}
+      <tr><td style="padding:0">${HR}${HR}</td></tr>
+      ${showroom ? `<tr><td style="padding:4px 0">${pCenter(nl2br(showroom))}</td></tr>
+      <tr><td style="padding:0">${HR}${HR}</td></tr>` : ''}
+      ${auswahl ? `<tr><td style="padding:4px 0">${pCenter(nl2br(auswahl))}</td></tr>
+      <tr><td style="padding:0">${HR}</td></tr>` : ''}
+      <tr><td style="padding:4px 0">
+        ${abschlussHTML}
+        ${teamImg ? `<p style="margin:10px 0 0 0;text-align:center"><a href="${esc(web)}" target="_blank"><img src="${esc(teamImg)}" width="300" alt="${esc(teamNames)}" style="display:block;margin:0 auto;width:300px;max-width:100%;height:auto;border:0"></a></p>` : ''}
+        ${teamNames ? `<p style="margin:8px 0 16px 0;text-align:center;font-size:12px;line-height:18px;font-family:${F_ARIAL};color:#333333">${esc(teamNames)}</p>` : ''}
+      </td></tr>
+    </table>
+
+    <!-- KONTAKT -->
+    <div style="text-align:center;margin-top:16px"><hr size="2" width="100%" noshade style="border:0;border-top:2px solid #CC3333;height:0;margin:0"></div>
+    <p style="margin:10px 0 12px 0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#333333">Haben Sie Anregungen, Kritikpunkte oder Fragen? Gerne würden wir von Ihnen hören,<br>
+      schreiben Sie uns doch einfach eine <a href="mailto:${esc(mail2 || mail1)}?subject=Newsletter%20Rueckmeldung" style="font-size:12px;color:${C_RED}">E-Mail</a> oder rufen Sie uns an!</p>
+    <table role="presentation" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%">
+      <tr>
+        <td width="50%" align="center" valign="top" style="width:50%">
+          <p style="margin:0 0 12px 0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#333333">${esc(firma)}<br>
+          ${gf ? `Geschäftsführung: ${esc(gf)}<br>` : ''}${esc(strasse)}<br>${esc(ort)}</p>
+        </td>
+        <td width="50%" align="center" valign="top" style="width:50%">
+          <p style="margin:0 0 12px 0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#333333">
+          ${tel ? `Tel. ${esc(tel)}<br>` : ''}${fax ? `Fax ${esc(fax)}<br>` : ''}
+          ${mail1 ? `E-Mail <a href="mailto:${esc(mail1)}" style="font-size:12px;color:${C_RED}">${esc(mail1)}</a><br>` : ''}
+          ${webRaw ? `Web <a href="${esc(web)}" target="_blank" style="font-size:12px;color:${C_RED}">${esc(webRaw)}</a>` : ''}</p>
+        </td>
+      </tr>
+    </table>
+
+  </td></tr>
+
+  <!-- COPYRIGHT -->
+  ${copy ? `<tr><td align="center" style="padding:20px 0">
+    <p style="margin:0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#151515">${esc(copy)}</p>
+  </td></tr>` : ''}
+
+  <!-- ABMELDUNG -->
+  <tr><td align="center" style="padding:0 0 15px 0">
+    <p style="margin:0;text-align:center;line-height:18px;font-size:10px;font-family:${F_VERD};color:#303030">Durch fehlerhafte Eintragungen von E-Mail-Adressen in unserer Datenbank kann es zu Irrläufern dieser Mail kommen. Das ist nicht beabsichtigt und wir sind für entsprechende Hinweise dankbar.<br>
+    Wenn Sie keine weiteren News &amp; Angebote in Form eines Newsletters beziehen wollen, schicken Sie uns einfach eine E-Mail an folgende Adresse:
+    <a href="mailto:${esc(mail2 || mail1)}?subject=Newsletter%20abmelden" style="color:#303030">${esc(mail2 || mail1)}</a></p>
+  </td></tr>
+
+</table>
+
+</td></tr>
+</table>
 </body>
 </html>`;
 }
@@ -1399,11 +1503,12 @@ ${pretextTag}
 // ════════════════════════════════════════════════════
 function refresh() {
   document.getElementById('preview').srcdoc = buildHTML();
+  updateSubjectPreview();
 }
 
 function downloadHTML() {
-  const kw = document.getElementById('kw').value;
-  const jahr = document.getElementById('jahr').value;
+  const kw = val('kw');
+  const jahr = val('jahr');
   const html = buildHTML();
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const a = document.createElement('a');
@@ -1413,14 +1518,54 @@ function downloadHTML() {
   showStatus(`newsletter_KW${kw}_${jahr}.html heruntergeladen!`);
 }
 
-function copyHTML() {
-  const html = buildHTML();
-  navigator.clipboard.writeText(html).then(() => {
-    showStatus('HTML in Zwischenablage kopiert!');
-  }).catch(() => {
-    showStatus('Kopieren fehlgeschlagen — bitte Datei herunterladen.');
-  });
+// Kopiert den Newsletter als formatierten Inhalt (wie „Strg+C“ auf einer Webseite).
+// In Outlook, Gmail, Seznam, Thunderbird … einfach in eine neue E-Mail mit Strg+V einfügen.
+function emailBodyHTML() {
+  const full = buildHTML();
+  const m = full.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  let body = m ? m[1] : full;
+  // unsichtbaren Vorschautext entfernen – würde beim Einfügen sichtbar werden
+  body = body.replace(/<div style="display:none;[^"]*">[\s\S]*?<\/div>/i, '');
+  return body.trim();
 }
+
+async function copyForEmail() {
+  const body = emailBodyHTML();
+  const htmlDoc = '<html><head><meta charset="UTF-8"></head><body>' + body + '</body></html>';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = body;
+  const plain = (tmp.innerText || tmp.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+
+  // 1) Moderne Clipboard-API (Chrome, Edge, Safari, Firefox ≥ 127)
+  try {
+    if (window.ClipboardItem && navigator.clipboard?.write) {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html':  new Blob([htmlDoc], { type: 'text/html' }),
+        'text/plain': new Blob([plain],   { type: 'text/plain' })
+      })]);
+      showStatus('Newsletter kopiert! Jetzt neue E-Mail öffnen und Strg+V drücken.');
+      return;
+    }
+  } catch(e) { console.warn('ClipboardItem fehlgeschlagen, nutze Fallback:', e); }
+
+  // 2) Fallback: gerenderten Inhalt markieren und kopieren
+  const holder = document.createElement('div');
+  holder.contentEditable = 'true';
+  holder.style.cssText = 'position:fixed;left:-99999px;top:0;width:900px;background:#fff;';
+  holder.innerHTML = body;
+  document.body.appendChild(holder);
+  const range = document.createRange();
+  range.selectNodeContents(holder);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  sel.removeAllRanges();
+  holder.remove();
+  showStatus(ok ? 'Newsletter kopiert! Jetzt neue E-Mail öffnen und Strg+V drücken.'
+                : 'Kopieren fehlgeschlagen — bitte HTML herunterladen.');
+}
+
 
 function exportPDF() {
   const frame = document.getElementById('preview');
@@ -1435,19 +1580,18 @@ function exportPDF() {
 // ════════════════════════════════════════════════════
 //  SAVE / LOAD DRAFT
 // ════════════════════════════════════════════════════
-const DRAFT_KEY = 'newsletter_draft_v2';
+const DRAFT_KEY = 'newsletter_draft_v3';
+const FIELD_DEFAULTS = {};   // wird beim Start aus den HTML-Standardwerten befüllt
+const FIELD_IDS = ['logo-url','kw','jahr','anrede','untertitel','aktion-titel','gueltig-bis','apreis-default','ticker',
+  'pdf-url','xls-url','preis-hinweis','vorrat','showroom','auswahl','abschluss','team-img','team-names',
+  'ftr-firma','ftr-gf','ftr-strasse','ftr-ort','ftr-tel','ftr-fax','ftr-name1','ftr-email','ftr-name2','ftr-email2','ftr-web','ftr-copy',
+  'email-subject','email-pretext'];
 
 function saveDraft() {
   const fields = {};
-  ['firma','kw','jahr','datum','tagline','thema','intro','abschluss','ceny-text','dodaci',
-   'ftr-firma','ftr-adresse','ftr-tel','ftr-fax','ftr-email','ftr-web',
-   'email-subject','email-pretext'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) fields[id] = el.value;
-  });
-
+  FIELD_IDS.forEach(id => { const el = document.getElementById(id); if (el) fields[id] = el.value; });
   const draft = {
-    version: 2,
+    version: 3,
     savedAt: new Date().toISOString(),
     selectedOrder: [...selectedOrder],
     productExtras: [...productExtras.entries()],
@@ -1463,31 +1607,22 @@ function saveDraft() {
 
 function loadDraft() {
   try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    const raw = localStorage.getItem(DRAFT_KEY) || localStorage.getItem('newsletter_draft_v2');
     if (!raw) { showStatus('Kein gespeicherter Entwurf gefunden.'); return; }
     const draft = JSON.parse(raw);
 
-    // Restore fields
     if (draft.fields) {
-      Object.entries(draft.fields).forEach(([id, val]) => {
+      Object.entries(draft.fields).forEach(([id, v]) => {
         const el = document.getElementById(id);
-        if (el) el.value = val;
+        if (el) el.value = v;
       });
     }
 
-    // Restore products
     selected.clear();
     selectedOrder = [];
     productExtras.clear();
-    if (draft.selectedOrder) {
-      draft.selectedOrder.forEach(gm => {
-        selected.add(gm);
-        selectedOrder.push(gm);
-      });
-    }
-    if (draft.productExtras) {
-      draft.productExtras.forEach(([gm, ex]) => productExtras.set(gm, ex));
-    }
+    (draft.selectedOrder || []).forEach(gm => { selected.add(gm); selectedOrder.push(gm); });
+    (draft.productExtras || []).forEach(([gm, ex]) => productExtras.set(gm, Object.assign(newExtras(), ex)));
 
     rebuildList();
     rebuildSelConfig();
@@ -1512,26 +1647,10 @@ function showStatus(msg) {
 }
 
 function resetAll() {
-  document.getElementById('firma').value      = 'BRILLENGROSSHANDEL';
-  document.getElementById('kw').value         = 33;
-  document.getElementById('jahr').value       = 2026;
-  document.getElementById('datum').value      = 'Aug 2026';
-  document.getElementById('tagline').value    = 'Rita Bischoff · Mühlacker';
-  document.getElementById('thema').value      = 'Kinder & Jugendliche';
-  document.getElementById('intro').value      = 'Liebe Augenoptiker:innen, liebe Freunde,\ndiese Woche präsentieren wir Ihnen unsere aktuelle Kollektion.';
-  document.getElementById('abschluss').value  = 'Wir wünschen Ihnen eine erfolgreiche Woche und freuen uns auf Ihre Bestellung!';
-  document.getElementById('ceny-text').value  = '';
-  document.getElementById('dodaci').value     = '';
-  document.getElementById('ftr-firma').value  = 'Brillengroßhandel';
-  document.getElementById('ftr-adresse').value = 'Rita Bischoff · Mühlacker';
-  document.getElementById('ftr-tel').value    = '+49 7041 815-664';
-  document.getElementById('ftr-fax').value    = '07041 815 667';
-  document.getElementById('ftr-email').value  = 'rb@brillengrosshandel.net';
-  document.getElementById('ftr-web').value    = 'www.brillengrosshandel.net';
-  document.getElementById('email-subject').value = '';
-  document.getElementById('email-pretext').value = '';
-  document.getElementById('subject-preview').textContent = '–';
-  document.getElementById('pretext-preview').textContent = '–';
+  FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && id in FIELD_DEFAULTS) el.value = FIELD_DEFAULTS[id];
+  });
   selected.clear(); selectedOrder = []; productExtras.clear();
   if (ALL_PRODUCTS.length) {
     document.querySelectorAll('[data-brand]').forEach(el => el.checked = true);
@@ -1545,7 +1664,11 @@ function resetAll() {
 }
 
 // ════════════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', () => {
+  FIELD_IDS.forEach(id => { const el = document.getElementById(id); if (el) FIELD_DEFAULTS[id] = el.defaultValue ?? el.value; });
+  document.getElementById('apreis-default').addEventListener('input', rebuildSelConfig);
+  init();
+});
 </script>
 <script>
 function toggleDark(){
