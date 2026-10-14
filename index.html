@@ -291,9 +291,49 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
   .sect-body{padding:0 12px 12px;}
   .model-list{max-height:60vh!important;}
 }
+
+#auth-screen {position:fixed;inset:0;z-index:99999;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px;background:#0f172a;color:#0f172a;font-family:Arial,sans-serif;}
+#auth-screen[hidden],#app-shell[hidden] {display:none!important;}
+#app-shell {display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden;}
+.topbar {overflow-x:auto;}
+.account-area {display:flex;align-items:center;gap:7px;padding:4px 5px 4px 8px;background:#1e293b;border:1px solid #64748b;border-radius:9px;flex-shrink:0;}
+.account-identity {display:flex;align-items:center;gap:6px;color:#f8fafc;font-size:11px;white-space:nowrap;}
+.account-identity svg,.account-logout svg {width:18px;height:18px;flex-shrink:0;}
+.account-logout {display:inline-flex;align-items:center;gap:6px;padding:6px 9px;background:#fff7ed;color:#9a3412;border:1px solid #fb923c;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.account-logout:hover {background:#ffedd5;}
+.account-logout:focus-visible {outline:2px solid #fff;outline-offset:3px;}
+@media(max-width:1500px) {.account-identity span {display:none;}}
+@media(max-width:768px) {#app-shell {flex:none;overflow:visible;}.account-area {padding:3px 4px;gap:5px;}.account-logout {font-size:11px;padding:5px 7px;}}
+.auth-card {width:100%;max-width:410px;background:#fff;border-radius:14px;padding:28px;box-shadow:0 20px 60px #0004;}
+.auth-card h1 {font-size:23px;margin:0 0 8px;}.auth-card p {font-size:14px;line-height:1.5;color:#475569;}
+.auth-card label.auth-label {display:block;font-size:13px;font-weight:bold;margin-top:16px;}
+.auth-card input[type=email],.auth-card input[type=password] {box-sizing:border-box;width:100%;padding:11px;border:1px solid #94a3b8;border-radius:7px;margin-top:6px;background:#fff;color:#0f172a;}
+.auth-remember {display:flex;gap:8px;align-items:flex-start;margin:16px 0;font-size:13px;line-height:1.4;}.auth-remember input {width:14px!important;height:14px;flex:0 0 14px;margin-top:3px;}.auth-remember span {min-width:0;}
+.auth-submit {width:100%;padding:12px;border:0;border-radius:7px;background:#ea761b;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;}.auth-submit:disabled {opacity:.55;cursor:wait;}
+#auth-message {min-height:36px;font-size:13px;line-height:1.4;margin-top:14px;color:#475569;}#auth-message[data-error=true] {color:#b91c1c;}
+
 </style>
 </head>
 <body>
+
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>Newsletter Builder</h1>
+    <p>Bitte melden Sie sich mit Ihrem freigeschalteten Konto an.</p>
+    <form id="auth-form">
+      <label class="auth-label" for="auth-email">E-Mail</label>
+      <input id="auth-email" name="email" type="email" autocomplete="username" required value="j.kaiser@mi-optics.cz">
+      <label class="auth-label" for="auth-password">Passwort</label>
+      <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+      <label class="auth-remember"><input id="auth-remember" type="checkbox"><span>Angemeldet bleiben (nur auf einem eigenen Gerät)</span></label>
+      <button id="auth-submit" class="auth-submit" type="submit" disabled>Anmelden</button>
+    </form>
+    <div id="auth-message" role="status" aria-live="polite">Anmeldung wird vorbereitet …</div>
+    <noscript>JavaScript muss für die Anmeldung aktiviert sein.</noscript>
+  </div>
+</div>
+<div id="app-shell" hidden inert>
+
 
 <!-- TOP BAR -->
 <div class="topbar">
@@ -302,6 +342,16 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
     <div class="topbar-sub">Newsletter Builder · MI Optics</div>
   </div>
   <div class="topbar-spacer"></div>
+  <div class="account-area">
+    <span class="account-identity" id="account-identity" title="Angemeldetes Konto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="9" r="3"/><path d="M5 19c1-5 13-5 14 0"/></svg>
+      <span id="account-email">j.kaiser@mi-optics.cz</span>
+    </span>
+    <button class="account-logout" id="auth-logout" onclick="logoutNewsletter()" title="Vom Newsletter Builder abmelden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg>
+      Abmelden
+    </button>
+  </div>
   <button id="mob-toggle" class="btn btn-ghost" onclick="toggleMobView()" title="Editor / Vorschau wechseln">👁 Vorschau</button>
   <button class="btn btn-ghost" onclick="saveDraft()" title="Aktuellen Stand (Produkte, Preise, Texte) in diesem Browser speichern, um später weiterzuarbeiten">💾 <span class="btn-label">Entwurf speichern</span></button>
   <button class="btn btn-ghost mob-hide" onclick="loadDraft()" title="Zuletzt gespeicherten Entwurf wieder öffnen (nur in diesem Browser)">📂 <span class="btn-label">Entwurf laden</span></button>
@@ -377,21 +427,11 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
       </div>
       <div id="body-produkty" class="sect-body">
 
-        <!-- Datenquelle (API) -->
-        <div class="sect-sub" style="margin-top:0">Datenquelle (API)</div>
-        <label class="field-label">API-URL</label>
-        <input type="text" id="api-url" value="https://dog.mi-optics.cz/api/export/mail-de">
-        <label class="field-label">Token</label>
-        <input type="password" id="api-token" placeholder="Bearer-Token einfügen" autocomplete="off" spellcheck="false">
-        <label class="check-row" style="margin-top:6px">
-          <input type="checkbox" id="api-remember" checked>
-          <span>Token in diesem Browser merken</span>
-        </label>
+        <div class="sect-sub" style="margin-top:0">Produkte</div>
         <div class="mini-btns" style="margin-top:6px">
-          <button class="mini-btn" onclick="loadFromAPI()">↻ Von API laden</button>
-          <button class="mini-btn" onclick="clearToken()">Token löschen</button>
+          <button class="mini-btn" onclick="loadFromAPI()">↻ Produkte aktualisieren</button>
         </div>
-        <div class="api-status" id="api-status">Nenačteno</div>
+        <div class="api-status" id="api-status">Bitte anmelden.</div>
 
         <!-- Filter -->
         <div id="filter-sect" style="display:none">
@@ -594,7 +634,7 @@ Das Team vom Brillengroßhandel</textarea>
       <strong>Vorschau</strong>
       <span>· Echtzeit · <span id="preview-count">0 Produkte</span></span>
     </div>
-    <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
+    <iframe class="preview-frame" id="preview" sandbox="allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox" srcdoc=""></iframe>
   </div>
 </div>
 <div class="status" id="status"></div>
@@ -649,10 +689,30 @@ function esc(s) {
 }
 function nl2br(s) { return esc(s).replace(/\r?\n/g,'<br>'); }
 function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-function webHref(w) { if (!w) return ''; return /^https?:\/\//i.test(w) ? w : 'https://' + w; }
+function safeWebURL(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? raw : '';
+  } catch(e) { return ''; }
+}
+function webHref(w) {
+  const raw = String(w || '').trim();
+  return safeWebURL(/^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : 'https://' + raw);
+}
+function renderFilterChips(el, entries, active, handler) {
+  el.replaceChildren(...entries.map(([value, label]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (active === value ? ' active' : '');
+    chip.textContent = label;
+    chip.addEventListener('click', () => handler(value));
+    return chip;
+  }));
+}
 function imgUrl(fp) {
   if (!fp) return null;
-  const clean = fp.replace(/\\/g, '/');
+  const clean = String(fp).replace(/\\/g, '/');
   if (clean.includes('/')) return 'https://cz.mi-optics.cz/img-products/' + clean;
   return `https://cz.mi-optics.cz/img-products/${clean.substring(0,2)}/${clean.substring(2,4)}/${clean}`;
 }
@@ -799,9 +859,128 @@ function toggleSect(id) {
 // ════════════════════════════════════════════════════
 //  LOADING  (nur API – keine Fallback-Daten)
 // ════════════════════════════════════════════════════
-const API_DEFAULT_URL = 'https://dog.mi-optics.cz/api/export/mail-de';
-const LS_TOKEN = 'nb_api_token';
-const LS_URL   = 'nb_api_url';
+const PRODUCTS_ENDPOINT = 'https://europe-west1-newsletter-builder-5f38c.cloudfunctions.net/newsletterProducts';
+const NEWSLETTER_UID = 'vMtmiMN60aYBmJkf4lTAZDalL2r1';
+let newsletterAuth = null;
+let newsletterUser = null;
+let productRequest = null;
+let productGeneration = 0;
+let suspendedWork = null;
+
+function authMessage(text, error=false) {
+  const el = document.getElementById('auth-message');
+  el.textContent = text;
+  el.dataset.error = String(error);
+}
+
+function lockNewsletter(message='Bitte melden Sie sich an.', error=false) {
+  const previouslySignedIn = !!newsletterUser;
+  newsletterUser = null;
+  ++productGeneration;
+  if (productRequest) productRequest.abort();
+  productRequest = null;
+  // Keep unsaved work only in this tab's memory, restore after own-account login.
+  // Explicitly saved drafts in localStorage are left untouched.
+  if (previouslySignedIn) {
+    suspendedWork = {
+      fields: Object.fromEntries(FIELD_IDS.map(id => [id, val(id)])),
+      order: [...selectedOrder], extras: [...productExtras.entries()]
+    };
+  }
+  clearProducts();
+  resetAll();
+  ['brand-cb','color-chips','tvar-chips','bform-chips','mat-chips'].forEach(id => {
+    document.getElementById(id)?.replaceChildren();
+  });
+  document.getElementById('app-shell').hidden = true;
+  document.getElementById('app-shell').inert = true;
+  document.getElementById('auth-screen').hidden = false;
+  document.getElementById('auth-password').value = '';
+  authMessage(message, error);
+}
+
+async function logoutNewsletter() {
+  if (!newsletterAuth) return;
+  lockNewsletter('Sie wurden abgemeldet. Gespeicherte Entwürfe bleiben in diesem Browser erhalten.');
+  try { await newsletterAuth.signOut(); }
+  catch(e) { authMessage('Abmelden konnte nicht abgeschlossen werden. Bitte erneut versuchen.', true); }
+}
+
+async function startNewsletterAuth() {
+  try {
+    const [appSDK, authSDK] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js')
+    ]);
+    const app = appSDK.initializeApp({
+      apiKey: 'AIzaSyA9CWeja1f6k5WCu5EgmOpCSVdMHc2-eZQ',
+      authDomain: 'newsletter-builder-5f38c.firebaseapp.com',
+      projectId: 'newsletter-builder-5f38c',
+      storageBucket: 'newsletter-builder-5f38c.firebasestorage.app',
+      messagingSenderId: '17133787760',
+      appId: '1:17133787760:web:ecb291753a946a103972b5'
+    }, 'newsletter-builder');
+    const auth = authSDK.getAuth(app);
+    newsletterAuth = {
+      signOut: () => authSDK.signOut(auth)
+    };
+    document.getElementById('auth-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = document.getElementById('auth-submit');
+      button.disabled = true;
+      authMessage('Anmeldung läuft …');
+      try {
+        const persistence = document.getElementById('auth-remember').checked
+          ? authSDK.browserLocalPersistence : authSDK.browserSessionPersistence;
+        await authSDK.setPersistence(auth, persistence);
+        await authSDK.signInWithEmailAndPassword(auth,
+          document.getElementById('auth-email').value.trim(),
+          document.getElementById('auth-password').value);
+        document.getElementById('auth-password').value = '';
+      } catch(e) {
+        const code = e?.code || '';
+        authMessage(code === 'auth/too-many-requests'
+          ? 'Zu viele Versuche. Bitte später erneut versuchen.'
+          : code === 'auth/network-request-failed'
+          ? 'Keine Verbindung zur Anmeldung. Bitte Internetverbindung prüfen.'
+          : 'Anmeldung nicht möglich. Bitte E-Mail und Passwort prüfen.', true);
+        document.getElementById('auth-password').value = '';
+      } finally { button.disabled = false; }
+    });
+    authSDK.onIdTokenChanged(auth, async user => {
+      if (!user) { lockNewsletter(); return; }
+      if (user.uid !== NEWSLETTER_UID) {
+        lockNewsletter('Dieses Konto ist nicht für diese Anwendung freigeschaltet.', true);
+        try { await authSDK.signOut(auth); } catch(e) {}
+        authMessage('Dieses Konto ist nicht für diese Anwendung freigeschaltet.', true);
+        return;
+      }
+      const newSession = newsletterUser?.uid !== user.uid;
+      newsletterUser = user;
+      document.getElementById('account-email').textContent = user.email || 'Mein Konto';
+      document.getElementById('account-identity').title = 'Angemeldet als ' + (user.email || 'Mein Konto');
+      document.getElementById('auth-password').value = '';
+      document.getElementById('auth-screen').hidden = true;
+      document.getElementById('app-shell').hidden = false;
+      document.getElementById('app-shell').inert = false;
+      if (newSession) {
+        if (suspendedWork) {
+          FIELD_IDS.forEach(id => { const el=document.getElementById(id); if(el) el.value=suspendedWork.fields[id]; });
+          suspendedWork.order.forEach(gm => selected.add(gm));
+          selectedOrder = [...suspendedWork.order];
+          productExtras.clear();
+          suspendedWork.extras.forEach(([gm, ex]) => productExtras.set(gm, ex));
+          suspendedWork = null;
+        }
+        await loadFromAPI();
+      }
+    }, () => lockNewsletter('Anmeldung nicht verfügbar. Bitte Seite neu laden.', true));
+    document.getElementById('auth-submit').disabled = false;
+    authMessage('Bitte melden Sie sich an.');
+  } catch(e) {
+    lockNewsletter('Anmeldung konnte nicht geladen werden. Bitte Verbindung prüfen und die Seite neu laden.', true);
+  }
+}
 
 function apiStatus(msg, kind) {
   const el = document.getElementById('api-status');
@@ -822,57 +1001,50 @@ function unwrapProducts(d) {
   return [];
 }
 
-function sanitizeToken(raw) {
-  return String(raw || '')
-    .trim()
-    .replace(/^Bearer\s+/i, '')
-    .replace(/[^\x21-\x7E]/g, '');
-}
-
 async function loadFromAPI() {
-  const url   = (document.getElementById('api-url').value || '').trim() || API_DEFAULT_URL;
-  const rawInput = document.getElementById('api-token').value || '';
-  const token = sanitizeToken(rawInput);
-  if (!token) { clearProducts(); apiStatus('Zadej prosím token.', 'err'); return false; }
-  if (token !== rawInput.trim()) {
-    document.getElementById('api-token').value = token;
-  }
-  apiStatus('Načítám z API …');
-  try {
-    const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
-    if (!r.ok) {
-      throw new Error(r.status === 401 || r.status === 403
-        ? 'Token je neplatný nebo vypršel (HTTP ' + r.status + ')'
-        : 'Chyba serveru (HTTP ' + r.status + ')');
-    }
-    const data = unwrapProducts(await r.json());
-    if (!data.length) throw new Error('API nevrátilo žádné produkty.');
-    onProductsLoaded(data);
-    try {
-      if (document.getElementById('api-remember').checked) {
-        localStorage.setItem(LS_TOKEN, token);
-        localStorage.setItem(LS_URL, url);
-      } else {
-        localStorage.removeItem(LS_TOKEN);
-      }
-    } catch(e) {}
-    apiStatus('✓ Načteno z API · ' + ALL_PRODUCTS.length + ' modelů · ' + new Date().toLocaleTimeString('cs-CZ'), 'ok');
-    return true;
-  } catch(e) {
-    const msg = (e instanceof TypeError)
-      ? 'Nepodařilo se připojit – síť nebo CORS (server musí povolit https://kaiserjiri.github.io)'
-      : e.message;
-    clearProducts();
-    apiStatus('✗ ' + msg + ' – žádné produkty nenačteny.', 'err');
-    console.error('API-Laden fehlgeschlagen:', e);
+  const user = newsletterUser;
+  if (!user || user.uid !== NEWSLETTER_UID) {
+    apiStatus('Bitte zuerst anmelden.', 'err');
     return false;
   }
-}
-
-function clearToken() {
-  try { localStorage.removeItem(LS_TOKEN); } catch(e) {}
-  document.getElementById('api-token').value = '';
-  apiStatus('Token smazán.');
+  const generation = ++productGeneration;
+  if (productRequest) productRequest.abort();
+  const controller = new AbortController();
+  productRequest = controller;
+  const timeout = setTimeout(() => controller.abort(), 60000);
+  apiStatus('Produkte werden geladen …');
+  try {
+    const idToken = await user.getIdToken();
+    if (generation !== productGeneration || newsletterUser?.uid !== user.uid) return false;
+    const response = await fetch(PRODUCTS_ENDPOINT, {
+      method: 'GET', redirect: 'error', credentials: 'omit', cache: 'no-store',
+      headers: {Authorization: 'Bearer ' + idToken, Accept: 'application/json'},
+      signal: controller.signal
+    });
+    if (generation !== productGeneration || newsletterUser?.uid !== user.uid) return false;
+    if (response.status === 401 || response.status === 403) {
+      await logoutNewsletter();
+      authMessage('Sitzung abgelaufen oder Zugriff nicht erlaubt. Bitte erneut anmelden.', true);
+      return false;
+    }
+    if (!response.ok) throw new Error('Produktdienst nicht verfügbar (HTTP ' + response.status + ').');
+    const data = unwrapProducts(await response.json());
+    if (generation !== productGeneration || newsletterUser?.uid !== user.uid) return false;
+    if (!data.length) throw new Error('Keine Produkte empfangen.');
+    onProductsLoaded(data);
+    apiStatus('✓ ' + ALL_PRODUCTS.length + ' Modelle geladen · ' + new Date().toLocaleTimeString('de-DE'), 'ok');
+    return true;
+  } catch(e) {
+    if (generation !== productGeneration) return false;
+    clearProducts();
+    apiStatus(e.name === 'AbortError'
+      ? 'Laden hat zu lange gedauert. Bitte erneut versuchen.'
+      : e instanceof TypeError ? 'Keine Verbindung zum Produktdienst. Bitte erneut versuchen.' : e.message, 'err');
+    return false;
+  } finally {
+    clearTimeout(timeout);
+    if (productRequest === controller) productRequest = null;
+  }
 }
 
 function clearProducts() {
@@ -904,22 +1076,11 @@ function init() {
 
   refresh();
 
-  let tok = '';
   try {
-    tok = localStorage.getItem(LS_TOKEN) || '';
-    const u = localStorage.getItem(LS_URL);
-    if (u) document.getElementById('api-url').value = u;
+    ['nb_api_token','nb_api_url','nb_api_remember_v1','nl_products_cache'].forEach(key => localStorage.removeItem(key));
   } catch(e) {}
-
-  try { localStorage.removeItem('nl_products_cache'); } catch(e) {}
-
-  if (tok) {
-    document.getElementById('api-token').value = tok;
-    loadFromAPI();
-  } else {
-    clearProducts();
-    apiStatus('Žádná data – zadej token a klikni na „Von API laden“.', 'err');
-  }
+  clearProducts();
+  startNewsletterAuth();
 }
 
 function onProductsLoaded(data) {
@@ -964,8 +1125,7 @@ function buildColorChips() {
   const families = [...new Set(ALL_PRODUCTS.flatMap(p=>(p.variants||[]).flatMap(v=>colorFamilies(v.colorName))))].sort();
   const el = document.getElementById('color-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...families.map(f=>[f,f])].map(([v,lbl])=>
-    `<span class="chip${activeColor===v?' active':''}" onclick="setColor('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...families.map(f => [f,f])], activeColor, setColor);
 }
 function setColor(v) { activeColor=v; buildColorChips(); rebuildList(); }
 
@@ -985,8 +1145,7 @@ function buildBformChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p=>(p.specs||{})['Brillenform']||'').filter(Boolean))].sort();
   const el = document.getElementById('bform-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...vals.map(v=>[v,v])].map(([v,lbl])=>
-    `<span class="chip${activeBform===v?' active':''}" onclick="setBform('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v,v])], activeBform, setBform);
 }
 function setBform(v){ activeBform=v; buildBformChips(); rebuildList(); }
 
@@ -994,8 +1153,7 @@ function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
   const el = document.getElementById('tvar-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])].map(([v,lbl])=>`
-    <span class="chip${activeTvar===v?' active':''}" onclick="setTvar('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])], activeTvar, setTvar);
 }
 function setTvar(v) { activeTvar = v; buildTvarChips(); rebuildList(); }
 
@@ -1006,8 +1164,7 @@ function buildMatChips() {
   }).filter(Boolean))].sort();
   const el = document.getElementById('mat-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])].map(([v,lbl])=>`
-    <span class="chip${activeMat===v?' active':''}" onclick="setMat('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])], activeMat, setMat);
 }
 function setMat(v) { activeMat = v; buildMatChips(); rebuildList(); }
 function toggleFlex() {
@@ -1100,10 +1257,10 @@ function rebuildList() {
       return `<div class="var-row" title="${esc(v.colorName)}"><span class="var-dot" style="background:${dotBackground(v.colorName)}"></span><span class="var-name"><b>${esc(code)}</b> ${esc(transColor(v.colorName||''))}</span></div>`;
     }).join('') + (filteredVars.length > 6 ? `<div class="var-name">+ ${filteredVars.length-6} weitere</div>` : '');
     const imgTag = url
-      ? `<img class="model-thumb" src="${url}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
+      ? `<img class="model-thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
       : `<div class="model-thumb"></div>`;
 
-    return `<div class="model-item${on?' on':''}" data-gm="${esc(p.gm)}" onclick="toggleProd('${esc(p.gm)}',this)">
+    return `<div class="model-item${on?' on':''}" data-gm="${esc(p.gm)}">
       ${imgTag}
       <div class="model-item-info">
         <div class="model-brand">${esc(p.brand)}</div>
@@ -1115,8 +1272,12 @@ function rebuildList() {
     </div>`;
   }).join('');
 
+  list.querySelectorAll('.model-item').forEach((el, i) => {
+    el.addEventListener('click', () => toggleProd(show[i].gm, el));
+  });
+
   if (items.length > MAX_DISPLAY) {
-    list.innerHTML += `<div class="more-label">… und weiteren ${items.length - MAX_DISPLAY} Produkten · Suche verfeinern</div>`;
+    list.insertAdjacentHTML('beforeend', `<div class="more-label">… und weiteren ${items.length - MAX_DISPLAY} Produkten · Suche verfeinern</div>`);
   }
   updateCount();
 }
@@ -1199,12 +1360,7 @@ function rebuildSelConfig() {
   wrap.style.display = '';
   cont.innerHTML = selProds.map(p => {
     const ex = Object.assign(newExtras(), productExtras.get(p.gm) || {});
-    return `<div class="sel-card" draggable="true" data-gm="${p.gm}"
-      ondragstart="onDragStart(event,'${esc(p.gm)}')"
-      ondragover="onDragOver(event)"
-      ondragleave="onDragLeave(event)"
-      ondrop="onDrop(event,'${esc(p.gm)}')"
-      ondragend="onDragEnd(event)">
+    return `<div class="sel-card" draggable="true" data-gm="${esc(p.gm)}">
       <div class="sel-card-top">
         <span class="drag-handle">⠿</span>
         <div class="sel-card-info">
@@ -1213,33 +1369,47 @@ function rebuildSelConfig() {
         </div>
       </div>
       <div class="badge-btns">
-        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" onclick="setBadge('${esc(p.gm)}','NEU',this)">NEU</button>
-        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" onclick="setBadge('${esc(p.gm)}','SALE',this)">SALE</button>
-        <button class="badge-btn" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge('${esc(p.gm)}','',this)">—</button>
+        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" data-badge="NEU">NEU</button>
+        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" data-badge="SALE">SALE</button>
+        <button class="badge-btn" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" data-badge="">—</button>
       </div>
       <div class="row2" style="margin-top:6px">
         <div>
           <label class="field-label" style="margin-top:0">Originalpreis</label>
-          <input type="text" value="${esc(ex.orig)}" placeholder="27,90 €" oninput="setExtra('${esc(p.gm)}','orig',this.value)">
+          <input type="text" value="${esc(ex.orig)}" placeholder="27,90 €" data-extra="orig">
         </div>
         <div>
           <label class="field-label" style="margin-top:0">A-Preis</label>
-          <input type="text" value="${esc(ex.price)}" placeholder="${esc(defPrice)}" oninput="setExtra('${esc(p.gm)}','price',this.value)">
+          <input type="text" value="${esc(ex.price)}" placeholder="${esc(defPrice)}" data-extra="price">
         </div>
       </div>
       <label class="field-label">Farben im Newsletter</label>
-      <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;background:inherit;color:inherit" onchange="setExtra('${esc(p.gm)}','colorFilter',this.value)">
+      <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;background:inherit;color:inherit" data-extra="colorFilter">
         <option value=""${!ex.colorFilter?' selected':''}>Alle Farben (${(p.variants||[]).length})</option>
         ${[...new Set((p.variants||[]).flatMap(v=>colorFamilies(v.colorName)))].sort().map(f=>{
           const n=(p.variants||[]).filter(v=>hasColor(v,f)).length;
           return `<option value="${esc(f)}"${ex.colorFilter===f?' selected':''}>nur ${esc(f)} (${n})</option>`;}).join('')}
       </select>
       <label class="field-label">Rubrik</label>
-      <input type="text" value="${esc(ex.rubrik)}" placeholder="${esc(autoRubrik(p))}" oninput="setExtra('${esc(p.gm)}','rubrik',this.value)">
+      <input type="text" value="${esc(ex.rubrik)}" placeholder="${esc(autoRubrik(p))}" data-extra="rubrik">
       <label class="field-label">Zusatzzeile</label>
-      <input type="text" value="${esc(ex.desc)}" placeholder="z. B. kalt verglasen / incl. Sonnenclip" oninput="setExtra('${esc(p.gm)}','desc',this.value)">
+      <input type="text" value="${esc(ex.desc)}" placeholder="z. B. kalt verglasen / incl. Sonnenclip" data-extra="desc">
     </div>`;
   }).join('');
+  cont.querySelectorAll('.sel-card').forEach((card, i) => {
+    const gm = selProds[i].gm;
+    card.addEventListener('dragstart', e => onDragStart(e, gm));
+    card.addEventListener('dragover', onDragOver);
+    card.addEventListener('dragleave', onDragLeave);
+    card.addEventListener('drop', e => onDrop(e, gm));
+    card.addEventListener('dragend', onDragEnd);
+    card.querySelectorAll('[data-badge]').forEach(btn => {
+      btn.addEventListener('click', () => setBadge(gm, btn.dataset.badge, btn));
+    });
+    card.querySelectorAll('[data-extra]').forEach(input => {
+      input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => setExtra(gm, input.dataset.extra, input.value));
+    });
+  });
 }
 
 function setExtra(gm, key, value) {
@@ -1336,7 +1506,7 @@ function buildProductCell(p, v, ex, web) {
   ].filter(Boolean).join('<br>\n');
 
   return `<td width="33%" valign="top" align="center" style="width:33%;padding:8px 4px 4px 4px">
-  <a href="${esc(web)}" target="_blank" style="text-decoration:none"><img src="${esc(vUrl)}" width="260" alt="${esc(p.modelName + ' ' + color)}" style="display:block;margin:0 auto;width:100%;max-width:260px;height:auto;border:0"></a>
+  <a href="${esc(web)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><img src="${esc(vUrl)}" width="260" alt="${esc(p.modelName + ' ' + color)}" style="display:block;margin:0 auto;width:100%;max-width:260px;height:auto;border:0"></a>
   <p style="margin:8px 0 16px 0;text-align:center;line-height:18px;font-size:12px;font-family:${F_ARIAL};color:#333333">${lines}</p>
 </td>`;
 }
@@ -1344,20 +1514,20 @@ function buildProductCell(p, v, ex, web) {
 function buildHTML() {
   const kw        = val('kw');
   const jahr      = val('jahr');
-  const logoUrl   = val('logo-url');
+  const logoUrl   = safeWebURL(val('logo-url'));
   const anrede    = val('anrede');
   const untertitel= val('untertitel');
   const titel     = val('aktion-titel');
   const gueltig   = val('gueltig-bis');
   const ticker    = val('ticker');
-  const pdfUrl    = val('pdf-url').trim();
-  const xlsUrl    = val('xls-url').trim();
+  const pdfUrl    = safeWebURL(val('pdf-url'));
+  const xlsUrl    = safeWebURL(val('xls-url'));
   const preisHinw = val('preis-hinweis');
   const vorrat    = val('vorrat');
   const showroom  = val('showroom');
   const auswahl   = val('auswahl');
   const abschluss = val('abschluss');
-  const teamImg   = val('team-img');
+  const teamImg   = safeWebURL(val('team-img'));
   const teamNames = val('team-names');
   const firma     = val('ftr-firma');
   const gf        = val('ftr-gf');
@@ -1408,7 +1578,7 @@ ${gridRows}</table>`
 
   const pVerdB = (inner, extra='') => `<p style="margin:0 0 14px 0;font-size:13px;line-height:18px;font-weight:bold;font-family:${F_VERD};color:#000000;${extra}">${inner}</p>`;
   const pCenter = inner => `<p style="margin:6px 0;text-align:center;font-size:16px;line-height:22px;font-family:${F_VERD};color:#303030">${inner}</p>`;
-  const link = (href, text, style='') => `<a href="${esc(href)}" target="_blank" style="color:#000000;${style}">${text}</a>`;
+  const link = (href, text, style='') => `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:#000000;${style}">${text}</a>`;
 
   const pretextTag = pretext
     ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${esc(pretext)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
@@ -1501,7 +1671,7 @@ ${pretextTag}
       <tr><td style="padding:0">${HR}</td></tr>` : ''}
       <tr><td style="padding:4px 0">
         ${abschlussHTML}
-        ${teamImg ? `<p style="margin:10px 0 0 0;text-align:center"><a href="${esc(web)}" target="_blank"><img src="${esc(teamImg)}" width="300" alt="${esc(teamNames)}" style="display:block;margin:0 auto;width:300px;max-width:100%;height:auto;border:0"></a></p>` : ''}
+        ${teamImg ? `<p style="margin:10px 0 0 0;text-align:center"><a href="${esc(web)}" target="_blank" rel="noopener noreferrer"><img src="${esc(teamImg)}" width="300" alt="${esc(teamNames)}" style="display:block;margin:0 auto;width:300px;max-width:100%;height:auto;border:0"></a></p>` : ''}
         ${teamNames ? `<p style="margin:8px 0 16px 0;text-align:center;font-size:12px;line-height:18px;font-family:${F_ARIAL};color:#333333">${esc(teamNames)}</p>` : ''}
       </td></tr>
     </table>
@@ -1520,7 +1690,7 @@ ${pretextTag}
           <p style="margin:0 0 12px 0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#333333">
           ${tel ? `Tel. ${esc(tel)}<br>` : ''}${fax ? `Fax ${esc(fax)}<br>` : ''}
           ${mail1 ? `E-Mail <a href="mailto:${esc(mail1)}" style="font-size:12px;color:${C_RED}">${esc(mail1)}</a><br>` : ''}
-          ${webRaw ? `Web <a href="${esc(web)}" target="_blank" style="font-size:12px;color:${C_RED}">${esc(webRaw)}</a>` : ''}</p>
+          ${webRaw ? `Web <a href="${esc(web)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:${C_RED}">${esc(webRaw)}</a>` : ''}</p>
         </td>
       </tr>
     </table>
@@ -1663,7 +1833,7 @@ function loadDraft() {
     if (draft.fields) {
       Object.entries(draft.fields).forEach(([id, v]) => {
         const el = document.getElementById(id);
-        if (el) el.value = v;
+        if (FIELD_IDS.includes(id) && el && typeof v === 'string') el.value = v;
       });
     }
 
@@ -1751,5 +1921,6 @@ function toggleDark(){
   document.head.appendChild(l);
 })();
 </script>
+</div><!-- app-shell -->
 </body>
 </html>
