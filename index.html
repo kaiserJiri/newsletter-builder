@@ -384,8 +384,8 @@ body.dark .btn-ghost:hover { color: #e2e8f0 !important; border-color: #64748b !i
         <label class="field-label">Token</label>
         <input type="password" id="api-token" placeholder="Bearer-Token einfügen" autocomplete="off" spellcheck="false">
         <label class="check-row" style="margin-top:6px">
-          <input type="checkbox" id="api-remember" checked>
-          <span>Token in diesem Browser merken</span>
+          <input type="checkbox" id="api-remember">
+          <span>Token in diesem Browser merken (auch für andere Seiten auf kaiserjiri.github.io zugänglich)</span>
         </label>
         <div class="mini-btns" style="margin-top:6px">
           <button class="mini-btn" onclick="loadFromAPI()">↻ Von API laden</button>
@@ -594,7 +594,7 @@ Das Team vom Brillengroßhandel</textarea>
       <strong>Vorschau</strong>
       <span>· Echtzeit · <span id="preview-count">0 Produkte</span></span>
     </div>
-    <iframe class="preview-frame" id="preview" srcdoc=""></iframe>
+    <iframe class="preview-frame" id="preview" sandbox="allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox" srcdoc=""></iframe>
   </div>
 </div>
 <div class="status" id="status"></div>
@@ -649,10 +649,30 @@ function esc(s) {
 }
 function nl2br(s) { return esc(s).replace(/\r?\n/g,'<br>'); }
 function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-function webHref(w) { if (!w) return ''; return /^https?:\/\//i.test(w) ? w : 'https://' + w; }
+function safeWebURL(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? raw : '';
+  } catch(e) { return ''; }
+}
+function webHref(w) {
+  const raw = String(w || '').trim();
+  return safeWebURL(/^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : 'https://' + raw);
+}
+function renderFilterChips(el, entries, active, handler) {
+  el.replaceChildren(...entries.map(([value, label]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (active === value ? ' active' : '');
+    chip.textContent = label;
+    chip.addEventListener('click', () => handler(value));
+    return chip;
+  }));
+}
 function imgUrl(fp) {
   if (!fp) return null;
-  const clean = fp.replace(/\\/g, '/');
+  const clean = String(fp).replace(/\\/g, '/');
   if (clean.includes('/')) return 'https://cz.mi-optics.cz/img-products/' + clean;
   return `https://cz.mi-optics.cz/img-products/${clean.substring(0,2)}/${clean.substring(2,4)}/${clean}`;
 }
@@ -802,6 +822,7 @@ function toggleSect(id) {
 const API_DEFAULT_URL = 'https://dog.mi-optics.cz/api/export/mail-de';
 const LS_TOKEN = 'nb_api_token';
 const LS_URL   = 'nb_api_url';
+const LS_REMEMBER = 'nb_api_remember_v1';
 
 function apiStatus(msg, kind) {
   const el = document.getElementById('api-status');
@@ -831,6 +852,10 @@ function sanitizeToken(raw) {
 
 async function loadFromAPI() {
   const url   = (document.getElementById('api-url').value || '').trim() || API_DEFAULT_URL;
+  if (url !== API_DEFAULT_URL) {
+    apiStatus('Nepovolená adresa API. Použijte ' + API_DEFAULT_URL, 'err');
+    return false;
+  }
   const rawInput = document.getElementById('api-token').value || '';
   const token = sanitizeToken(rawInput);
   if (!token) { clearProducts(); apiStatus('Zadej prosím token.', 'err'); return false; }
@@ -839,7 +864,7 @@ async function loadFromAPI() {
   }
   apiStatus('Načítám z API …');
   try {
-    const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
+    const r = await fetch(url, { redirect: 'error', credentials: 'omit', headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } });
     if (!r.ok) {
       throw new Error(r.status === 401 || r.status === 403
         ? 'Token je neplatný nebo vypršel (HTTP ' + r.status + ')'
@@ -850,10 +875,12 @@ async function loadFromAPI() {
     onProductsLoaded(data);
     try {
       if (document.getElementById('api-remember').checked) {
+        localStorage.setItem(LS_REMEMBER, '1');
         localStorage.setItem(LS_TOKEN, token);
         localStorage.setItem(LS_URL, url);
       } else {
         localStorage.removeItem(LS_TOKEN);
+        localStorage.removeItem(LS_REMEMBER);
       }
     } catch(e) {}
     apiStatus('✓ Načteno z API · ' + ALL_PRODUCTS.length + ' modelů · ' + new Date().toLocaleTimeString('cs-CZ'), 'ok');
@@ -870,9 +897,10 @@ async function loadFromAPI() {
 }
 
 function clearToken() {
-  try { localStorage.removeItem(LS_TOKEN); } catch(e) {}
+  try { localStorage.removeItem(LS_TOKEN); localStorage.removeItem(LS_REMEMBER); } catch(e) {}
+  document.getElementById('api-remember').checked = false;
   document.getElementById('api-token').value = '';
-  apiStatus('Token smazán.');
+  apiStatus('Token smazán. Již načtené produkty a rozpracovaný newsletter zůstávají otevřené.');
 }
 
 function clearProducts() {
@@ -906,11 +934,19 @@ function init() {
 
   let tok = '';
   try {
-    tok = localStorage.getItem(LS_TOKEN) || '';
-    const u = localStorage.getItem(LS_URL);
-    if (u) document.getElementById('api-url').value = u;
+    const remember = localStorage.getItem(LS_REMEMBER) === '1';
+    document.getElementById('api-remember').checked = remember;
+    if (remember) tok = localStorage.getItem(LS_TOKEN) || '';
+    else localStorage.removeItem(LS_TOKEN);
+    localStorage.removeItem(LS_URL);
+    document.getElementById('api-url').value = API_DEFAULT_URL;
   } catch(e) {}
 
+  document.getElementById('api-remember').addEventListener('change', e => {
+    if (!e.target.checked) {
+      try { localStorage.removeItem(LS_TOKEN); localStorage.removeItem(LS_REMEMBER); } catch(error) {}
+    }
+  });
   try { localStorage.removeItem('nl_products_cache'); } catch(e) {}
 
   if (tok) {
@@ -964,8 +1000,7 @@ function buildColorChips() {
   const families = [...new Set(ALL_PRODUCTS.flatMap(p=>(p.variants||[]).flatMap(v=>colorFamilies(v.colorName))))].sort();
   const el = document.getElementById('color-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...families.map(f=>[f,f])].map(([v,lbl])=>
-    `<span class="chip${activeColor===v?' active':''}" onclick="setColor('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...families.map(f => [f,f])], activeColor, setColor);
 }
 function setColor(v) { activeColor=v; buildColorChips(); rebuildList(); }
 
@@ -985,8 +1020,7 @@ function buildBformChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p=>(p.specs||{})['Brillenform']||'').filter(Boolean))].sort();
   const el = document.getElementById('bform-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'],...vals.map(v=>[v,v])].map(([v,lbl])=>
-    `<span class="chip${activeBform===v?' active':''}" onclick="setBform('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v,v])], activeBform, setBform);
 }
 function setBform(v){ activeBform=v; buildBformChips(); rebuildList(); }
 
@@ -994,8 +1028,7 @@ function buildTvarChips() {
   const vals = [...new Set(ALL_PRODUCTS.map(p => (p.specs||{})['Typ obruby']||'').filter(Boolean))].sort();
   const el = document.getElementById('tvar-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])].map(([v,lbl])=>`
-    <span class="chip${activeTvar===v?' active':''}" onclick="setTvar('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v, TVAR_DE[v.toLowerCase()]||TVAR_DE[v]||v])], activeTvar, setTvar);
 }
 function setTvar(v) { activeTvar = v; buildTvarChips(); rebuildList(); }
 
@@ -1006,8 +1039,7 @@ function buildMatChips() {
   }).filter(Boolean))].sort();
   const el = document.getElementById('mat-chips');
   if (!el) return;
-  el.innerHTML = [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])].map(([v,lbl])=>`
-    <span class="chip${activeMat===v?' active':''}" onclick="setMat('${esc(v)}')">${esc(lbl)}</span>`).join('');
+  renderFilterChips(el, [['','Alle'], ...vals.map(v=>[v, MAT_DE[v.toLowerCase()]||MAT_DE[v]||v])], activeMat, setMat);
 }
 function setMat(v) { activeMat = v; buildMatChips(); rebuildList(); }
 function toggleFlex() {
@@ -1100,10 +1132,10 @@ function rebuildList() {
       return `<div class="var-row" title="${esc(v.colorName)}"><span class="var-dot" style="background:${dotBackground(v.colorName)}"></span><span class="var-name"><b>${esc(code)}</b> ${esc(transColor(v.colorName||''))}</span></div>`;
     }).join('') + (filteredVars.length > 6 ? `<div class="var-name">+ ${filteredVars.length-6} weitere</div>` : '');
     const imgTag = url
-      ? `<img class="model-thumb" src="${url}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
+      ? `<img class="model-thumb" src="${esc(url)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">`
       : `<div class="model-thumb"></div>`;
 
-    return `<div class="model-item${on?' on':''}" data-gm="${esc(p.gm)}" onclick="toggleProd('${esc(p.gm)}',this)">
+    return `<div class="model-item${on?' on':''}" data-gm="${esc(p.gm)}">
       ${imgTag}
       <div class="model-item-info">
         <div class="model-brand">${esc(p.brand)}</div>
@@ -1115,8 +1147,12 @@ function rebuildList() {
     </div>`;
   }).join('');
 
+  list.querySelectorAll('.model-item').forEach((el, i) => {
+    el.addEventListener('click', () => toggleProd(show[i].gm, el));
+  });
+
   if (items.length > MAX_DISPLAY) {
-    list.innerHTML += `<div class="more-label">… und weiteren ${items.length - MAX_DISPLAY} Produkten · Suche verfeinern</div>`;
+    list.insertAdjacentHTML('beforeend', `<div class="more-label">… und weiteren ${items.length - MAX_DISPLAY} Produkten · Suche verfeinern</div>`);
   }
   updateCount();
 }
@@ -1199,12 +1235,7 @@ function rebuildSelConfig() {
   wrap.style.display = '';
   cont.innerHTML = selProds.map(p => {
     const ex = Object.assign(newExtras(), productExtras.get(p.gm) || {});
-    return `<div class="sel-card" draggable="true" data-gm="${p.gm}"
-      ondragstart="onDragStart(event,'${esc(p.gm)}')"
-      ondragover="onDragOver(event)"
-      ondragleave="onDragLeave(event)"
-      ondrop="onDrop(event,'${esc(p.gm)}')"
-      ondragend="onDragEnd(event)">
+    return `<div class="sel-card" draggable="true" data-gm="${esc(p.gm)}">
       <div class="sel-card-top">
         <span class="drag-handle">⠿</span>
         <div class="sel-card-info">
@@ -1213,33 +1244,47 @@ function rebuildSelConfig() {
         </div>
       </div>
       <div class="badge-btns">
-        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" onclick="setBadge('${esc(p.gm)}','NEU',this)">NEU</button>
-        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" onclick="setBadge('${esc(p.gm)}','SALE',this)">SALE</button>
-        <button class="badge-btn" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" onclick="setBadge('${esc(p.gm)}','',this)">—</button>
+        <button class="badge-btn${ex.badge==='NEU'?' active-neu':''}" data-badge="NEU">NEU</button>
+        <button class="badge-btn${ex.badge==='SALE'?' active-sale':''}" data-badge="SALE">SALE</button>
+        <button class="badge-btn" style="${ex.badge===''?'background:#f1f5f9;color:#64748b;border-color:#e2e8f0;':''}" data-badge="">—</button>
       </div>
       <div class="row2" style="margin-top:6px">
         <div>
           <label class="field-label" style="margin-top:0">Originalpreis</label>
-          <input type="text" value="${esc(ex.orig)}" placeholder="27,90 €" oninput="setExtra('${esc(p.gm)}','orig',this.value)">
+          <input type="text" value="${esc(ex.orig)}" placeholder="27,90 €" data-extra="orig">
         </div>
         <div>
           <label class="field-label" style="margin-top:0">A-Preis</label>
-          <input type="text" value="${esc(ex.price)}" placeholder="${esc(defPrice)}" oninput="setExtra('${esc(p.gm)}','price',this.value)">
+          <input type="text" value="${esc(ex.price)}" placeholder="${esc(defPrice)}" data-extra="price">
         </div>
       </div>
       <label class="field-label">Farben im Newsletter</label>
-      <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;background:inherit;color:inherit" onchange="setExtra('${esc(p.gm)}','colorFilter',this.value)">
+      <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;background:inherit;color:inherit" data-extra="colorFilter">
         <option value=""${!ex.colorFilter?' selected':''}>Alle Farben (${(p.variants||[]).length})</option>
         ${[...new Set((p.variants||[]).flatMap(v=>colorFamilies(v.colorName)))].sort().map(f=>{
           const n=(p.variants||[]).filter(v=>hasColor(v,f)).length;
           return `<option value="${esc(f)}"${ex.colorFilter===f?' selected':''}>nur ${esc(f)} (${n})</option>`;}).join('')}
       </select>
       <label class="field-label">Rubrik</label>
-      <input type="text" value="${esc(ex.rubrik)}" placeholder="${esc(autoRubrik(p))}" oninput="setExtra('${esc(p.gm)}','rubrik',this.value)">
+      <input type="text" value="${esc(ex.rubrik)}" placeholder="${esc(autoRubrik(p))}" data-extra="rubrik">
       <label class="field-label">Zusatzzeile</label>
-      <input type="text" value="${esc(ex.desc)}" placeholder="z. B. kalt verglasen / incl. Sonnenclip" oninput="setExtra('${esc(p.gm)}','desc',this.value)">
+      <input type="text" value="${esc(ex.desc)}" placeholder="z. B. kalt verglasen / incl. Sonnenclip" data-extra="desc">
     </div>`;
   }).join('');
+  cont.querySelectorAll('.sel-card').forEach((card, i) => {
+    const gm = selProds[i].gm;
+    card.addEventListener('dragstart', e => onDragStart(e, gm));
+    card.addEventListener('dragover', onDragOver);
+    card.addEventListener('dragleave', onDragLeave);
+    card.addEventListener('drop', e => onDrop(e, gm));
+    card.addEventListener('dragend', onDragEnd);
+    card.querySelectorAll('[data-badge]').forEach(btn => {
+      btn.addEventListener('click', () => setBadge(gm, btn.dataset.badge, btn));
+    });
+    card.querySelectorAll('[data-extra]').forEach(input => {
+      input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => setExtra(gm, input.dataset.extra, input.value));
+    });
+  });
 }
 
 function setExtra(gm, key, value) {
@@ -1336,7 +1381,7 @@ function buildProductCell(p, v, ex, web) {
   ].filter(Boolean).join('<br>\n');
 
   return `<td width="33%" valign="top" align="center" style="width:33%;padding:8px 4px 4px 4px">
-  <a href="${esc(web)}" target="_blank" style="text-decoration:none"><img src="${esc(vUrl)}" width="260" alt="${esc(p.modelName + ' ' + color)}" style="display:block;margin:0 auto;width:100%;max-width:260px;height:auto;border:0"></a>
+  <a href="${esc(web)}" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><img src="${esc(vUrl)}" width="260" alt="${esc(p.modelName + ' ' + color)}" style="display:block;margin:0 auto;width:100%;max-width:260px;height:auto;border:0"></a>
   <p style="margin:8px 0 16px 0;text-align:center;line-height:18px;font-size:12px;font-family:${F_ARIAL};color:#333333">${lines}</p>
 </td>`;
 }
@@ -1344,20 +1389,20 @@ function buildProductCell(p, v, ex, web) {
 function buildHTML() {
   const kw        = val('kw');
   const jahr      = val('jahr');
-  const logoUrl   = val('logo-url');
+  const logoUrl   = safeWebURL(val('logo-url'));
   const anrede    = val('anrede');
   const untertitel= val('untertitel');
   const titel     = val('aktion-titel');
   const gueltig   = val('gueltig-bis');
   const ticker    = val('ticker');
-  const pdfUrl    = val('pdf-url').trim();
-  const xlsUrl    = val('xls-url').trim();
+  const pdfUrl    = safeWebURL(val('pdf-url'));
+  const xlsUrl    = safeWebURL(val('xls-url'));
   const preisHinw = val('preis-hinweis');
   const vorrat    = val('vorrat');
   const showroom  = val('showroom');
   const auswahl   = val('auswahl');
   const abschluss = val('abschluss');
-  const teamImg   = val('team-img');
+  const teamImg   = safeWebURL(val('team-img'));
   const teamNames = val('team-names');
   const firma     = val('ftr-firma');
   const gf        = val('ftr-gf');
@@ -1408,7 +1453,7 @@ ${gridRows}</table>`
 
   const pVerdB = (inner, extra='') => `<p style="margin:0 0 14px 0;font-size:13px;line-height:18px;font-weight:bold;font-family:${F_VERD};color:#000000;${extra}">${inner}</p>`;
   const pCenter = inner => `<p style="margin:6px 0;text-align:center;font-size:16px;line-height:22px;font-family:${F_VERD};color:#303030">${inner}</p>`;
-  const link = (href, text, style='') => `<a href="${esc(href)}" target="_blank" style="color:#000000;${style}">${text}</a>`;
+  const link = (href, text, style='') => `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:#000000;${style}">${text}</a>`;
 
   const pretextTag = pretext
     ? `<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${esc(pretext)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>`
@@ -1501,7 +1546,7 @@ ${pretextTag}
       <tr><td style="padding:0">${HR}</td></tr>` : ''}
       <tr><td style="padding:4px 0">
         ${abschlussHTML}
-        ${teamImg ? `<p style="margin:10px 0 0 0;text-align:center"><a href="${esc(web)}" target="_blank"><img src="${esc(teamImg)}" width="300" alt="${esc(teamNames)}" style="display:block;margin:0 auto;width:300px;max-width:100%;height:auto;border:0"></a></p>` : ''}
+        ${teamImg ? `<p style="margin:10px 0 0 0;text-align:center"><a href="${esc(web)}" target="_blank" rel="noopener noreferrer"><img src="${esc(teamImg)}" width="300" alt="${esc(teamNames)}" style="display:block;margin:0 auto;width:300px;max-width:100%;height:auto;border:0"></a></p>` : ''}
         ${teamNames ? `<p style="margin:8px 0 16px 0;text-align:center;font-size:12px;line-height:18px;font-family:${F_ARIAL};color:#333333">${esc(teamNames)}</p>` : ''}
       </td></tr>
     </table>
@@ -1520,7 +1565,7 @@ ${pretextTag}
           <p style="margin:0 0 12px 0;text-align:center;line-height:18px;font-size:10px;font-family:${F_ARIAL};color:#333333">
           ${tel ? `Tel. ${esc(tel)}<br>` : ''}${fax ? `Fax ${esc(fax)}<br>` : ''}
           ${mail1 ? `E-Mail <a href="mailto:${esc(mail1)}" style="font-size:12px;color:${C_RED}">${esc(mail1)}</a><br>` : ''}
-          ${webRaw ? `Web <a href="${esc(web)}" target="_blank" style="font-size:12px;color:${C_RED}">${esc(webRaw)}</a>` : ''}</p>
+          ${webRaw ? `Web <a href="${esc(web)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;color:${C_RED}">${esc(webRaw)}</a>` : ''}</p>
         </td>
       </tr>
     </table>
@@ -1663,7 +1708,7 @@ function loadDraft() {
     if (draft.fields) {
       Object.entries(draft.fields).forEach(([id, v]) => {
         const el = document.getElementById(id);
-        if (el) el.value = v;
+        if (FIELD_IDS.includes(id) && el && typeof v === 'string') el.value = v;
       });
     }
 
